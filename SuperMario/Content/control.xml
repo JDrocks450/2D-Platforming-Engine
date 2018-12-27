@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Mapper>
+  <Binding1>
+    <Name>left</Name>
+    <Key>A</Key>
+  </Binding1>
+  <Binding2>
+    <Name>right</Name>
+    <Key>D</Key>
+  </Binding2>
+  <Binding3>
+    <Name>jump</Name>
+    <Key> </Key>
+  </Binding3>
+  <Binding4>
+    <Name>attack</Name>
+    <Key>F</Key>
+  </Binding4>
+</Mapper>
