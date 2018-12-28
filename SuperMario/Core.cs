@@ -20,9 +20,9 @@ namespace SuperMario
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
-        public static int WORLD_BOTTOM = 1000;        
+        public static int WORLD_BOTTOM = 700;
 
-        public static bool DEBUG = true;
+        public static bool DEBUG = false;
         public static Texture2D BaseTexture;
 
         public static Controls ControlHandler;
@@ -33,6 +33,13 @@ namespace SuperMario
 
         public static UserInterface UILayer;
 
+        public static Camera GameCamera;
+
+        public static Player ControlledPlayer
+        {
+            get => (Player)GameObjects.Find(x => x is Player);
+        }
+
         public static string Dir = Path.Combine(Environment.CurrentDirectory, "Content");        
 
         /// <summary>
@@ -42,13 +49,16 @@ namespace SuperMario
         /// <summary>
         /// An array of objects that should only ever be read from.
         /// </summary>
-        GameObject[] currentObjs;
+        public static GameObject[] SafeObjects;
 
         public Core()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             Manager = Content;
+#if DEBUG
+            DEBUG = true;
+#endif
         }
 
         /// <summary>
@@ -63,6 +73,7 @@ namespace SuperMario
             BaseTexture.SetData(new Color[] { Color.White });
             UILayer = new UserInterface(Manager, new Point(GraphicsDevice.Viewport.Width,
                 GraphicsDevice.Viewport.Height));
+            GameCamera = new Camera();
             base.Initialize();
         }
 
@@ -75,7 +86,10 @@ namespace SuperMario
             spriteBatch = new SpriteBatch(GraphicsDevice);
             ControlHandler = new Controls(Path.Combine(Dir, Controls.XMLNAME));
             PrefabObjects.Prefab.PrefabWarmup();
-            GameObjects.Add(new Ground(new Rectangle(0, 400, 500, 0)));
+            GameObjects.Add(new Ground(new Rectangle(0, 350, 1000, 0)));
+            GameObjects.Add(new Block(new Rectangle(300, 150, 50, 50)));
+            GameObjects.Add(new QuestionBlock(new Rectangle(350, 150, 50, 50)));
+            GameObjects.Add(new Block(new Rectangle(400, 150, 50, 50)));
         }
 
         /// <summary>
@@ -97,13 +111,14 @@ namespace SuperMario
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            currentObjs = GameObjects.ToArray();
+            GameCamera.Focus = ControlledPlayer;
+            SafeObjects = GameObjects.ToArray();
             var result = ControlHandler.MenuKeys(Keyboard.GetState());
             if (result.Contains(Controls.MENUKeys.DEBUG_PLAYER_CREATE))
                 GameObjects.Add(Player.DebugPlayer());
             if (result.Contains(Controls.MENUKeys.DEBUG_OBJECT_CREATE))
                 GameObjects.Add(GameObject.CreateDebugObject());
-            foreach (var obj in currentObjs)
+            foreach (var obj in SafeObjects)
             {
                 obj.Update(gameTime);
             }
@@ -117,9 +132,9 @@ namespace SuperMario
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.BlueViolet);
-            spriteBatch.Begin(SpriteSortMode.Deferred, null, SamplerState.LinearWrap); //Repeating texture objects drawn here
-            foreach (var obj in currentObjs)
+            GraphicsDevice.Clear(Color.SkyBlue);
+            spriteBatch.Begin(SpriteSortMode.Deferred, null, SamplerState.LinearWrap, null, null, null, GameCamera.Transform(GraphicsDevice)); //Repeating texture objects drawn here
+            foreach (var obj in SafeObjects)
             {
                 obj.Draw(spriteBatch);
             }            

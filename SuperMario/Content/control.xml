@@ -16,4 +16,8 @@
     <Name>attack</Name>
     <Key>F</Key>
   </Binding4>
+  <Binding5>
+    <Name>sprint</Name>
+    <Key>[shift]</Key>
+  </Binding5>
 </Mapper>

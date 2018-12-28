@@ -25,6 +25,8 @@ namespace SuperMario
         public event LocationChangedHandler OnLocationChanged;
         public delegate void SizeChangedHandler(Point old, Point updated, bool? IsWidthChange);
         public event SizeChangedHandler OnSizeChanged;
+        public delegate void CollisionDetected(Collidable.CollisionType type, Collidable collision, GameObject other);
+        public event CollisionDetected OnCollision;
 
         public Rectangle Hitbox
         {
@@ -127,6 +129,12 @@ namespace SuperMario
 
         internal List<Collidable> Collision;
         internal bool PhysicsApplied = true;
+        internal bool Physics_Ghost = false;
+        public bool gravityAirStateChange;
+        public bool InAir
+        {
+            get; internal set;
+        }
 
         private float _x;
         private float _y;
@@ -166,12 +174,23 @@ namespace SuperMario
         {
             if (!PhysicsApplied)
                 return false;
+            gravityAirStateChange = false;
             if (Y >= Core.WORLD_BOTTOM - Height)
             {
                 Y = Core.WORLD_BOTTOM - Height;
                 return false;
             }
             return true;
+        }
+
+        public void Remove()
+        {
+            Core.GameObjects.Remove(this);
+        }
+
+        public void PHYSICS_INVOKECOLLISION(Collidable.CollisionType type, Collidable collidable, GameObject other)
+        {
+            OnCollision?.Invoke(type, collidable, other);
         }
 
         public virtual void Update(GameTime gameTime)
@@ -190,9 +209,13 @@ namespace SuperMario
                 accel.Y = MAX_ACCEL_XY;
             Velocity += Acceleration;
             Location += Velocity;
-            foreach (var col in Collision)
-                col.UpdateCollsion();
-            if (DefaultTextureClip) _textureClip = Hitbox;
+            if (!Physics_Ghost)
+                foreach (var col in Collision)
+                    col.UpdateCollsion();            
+            if (DefaultTextureClip)
+            {
+                _textureClip = new Rectangle(0, 0, Width, Height);
+            }
         }
 
         public virtual void Draw(SpriteBatch sb)

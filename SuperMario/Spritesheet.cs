@@ -54,7 +54,7 @@ namespace SuperMario
             var items = data[row, column, 0];
             int frameWidth = texture.Width / items;
             int frameHeight = texture.Height / Rows;
-            return new Rectangle(frameWidth * column, frameHeight * row, frameWidth, frameHeight);
+            return Crop(new Rectangle(frameWidth * column, frameHeight * row, frameWidth, frameHeight));
         }
 
         public Rectangle MoveToFrame(int row, int column)
@@ -75,6 +75,35 @@ namespace SuperMario
         {
             Column += amount;            
             return MoveToFrame(Row, Column);
+        }
+
+        public Rectangle Crop(Rectangle source)
+        {
+            var foo = new Color[source.Width * source.Height];
+            texture.GetData(0, source, foo, 0, foo.Length);
+            int startLine = -1, endLine = -1, startIndex = -1, endIndex = -1;
+            for(var line = 0; line < source.Height; line++)
+            {
+                int colorIndex = -1;
+                for(var index = 0; index < source.Width; index++)
+                {
+                    var color = foo[line * source.Width + index];
+                    if (color != Color.Transparent)
+                    {
+                        if(startLine == -1)
+                            startLine = line;
+                        if (startIndex == -1 || startIndex > index)
+                            startIndex = index;
+                        colorIndex = index;
+                    }
+                }
+                if (endIndex == -1 || colorIndex > endIndex)
+                    endIndex = colorIndex;
+                if (colorIndex != -1)
+                    endLine = line;
+            }
+            endLine = source.Height;
+            return new Rectangle(source.X + startIndex, source.Y + startLine, endIndex - startIndex, endLine - startLine);
         }
     }
 }

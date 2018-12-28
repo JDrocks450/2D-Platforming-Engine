@@ -11,7 +11,7 @@ using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace SuperMario.ControlMapper
+namespace InputMapper
 {
     public partial class Mapper : Form
     {
@@ -142,7 +142,10 @@ namespace SuperMario.ControlMapper
             var doc = XDocument.Load(openfile.FileName);
             foreach(var d in doc.Root.Elements())
             {
-                keys.Add(d.Element("Name").Value, d.Element("Key").Value.ToCharArray().First());
+                var key = d.Element("Key").Value;
+                if (key == "")
+                    key = " ";
+                keys.Add(d.Element("Name").Value, key.ToCharArray().First());
             }
             DisplayKeys();
             SetupControls();

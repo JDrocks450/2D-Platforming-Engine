@@ -15,7 +15,7 @@ namespace SuperMario.PrefabObjects
     {
         public override string TextureName
         {
-            get => "Textures/brick";
+            get => "rock";
         }
 
         /// <summary>
@@ -28,6 +28,12 @@ namespace SuperMario.PrefabObjects
             PhysicsApplied = false;
             OnLocationChanged += Ground_OnLocationChanged;
             UpdateHeight(Hitbox.Y);
+            CreateBushes();
+        }
+        
+        void CreateBushes()
+        {
+            Core.GameObjects.Add(new Bush(Location.ToPoint() + new Point(Width / 2, -Bush.HEIGHT)));
         }
 
         private void Ground_OnLocationChanged(Vector2 old, Vector2 updated, bool? IsXChange)

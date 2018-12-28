@@ -36,9 +36,10 @@ namespace SuperMario.PrefabObjects
 
         public virtual void Load()
         {
-            if (!Prefab.LoadedTextures.Keys.Contains(TextureName))
-                Prefab.LoadedTextures.Add(TextureName, Core.Manager.Load<Texture2D>(TextureName));
-            Texture = LoadedTextures[TextureName];
+            var name = "Textures/" + TextureName;
+            if (!Prefab.LoadedTextures.Keys.Contains(name))
+                Prefab.LoadedTextures.Add(name, Core.Manager.Load<Texture2D>(name));
+            Texture = LoadedTextures[name];
         }
 
         public Texture2D GetTexture(string name)

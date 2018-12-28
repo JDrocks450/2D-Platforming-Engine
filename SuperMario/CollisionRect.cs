@@ -52,10 +52,10 @@ namespace SuperMario
                     case 0: //left
                         collidables.Add(new Collidable(obj.Location, obj.Height, obj, CollisionType.WALL));
                         break;
-                    case 1: //floor
+                    case 2: //floor
                         collidables.Add(new Collidable(obj.Location, obj.Width, obj, CollisionType.FLOOR));
                         break;
-                    case 2: //right
+                    case 1: //right
                         collidables.Add(new Collidable(new Vector2(obj.Location.X + obj.Width, obj.Location.Y),
                             obj.Height, obj, CollisionType.WALL, WallDirection.RIGHT));
                         break;
@@ -145,12 +145,14 @@ namespace SuperMario
         public void UpdateCollsion()
         {
             Setup();
-            foreach (var obj in Core.GameObjects)
+            foreach (var obj in Core.SafeObjects)
             {
+                var objGrounded = false;
                 foreach (var colBox in collsionboxes)
                 {
                     if (obj != Following)
                         if (obj.Hitbox.Intersects(colBox))
+                        {
                             switch (Type)
                             {
                                 case CollisionType.WALL:
@@ -177,6 +179,7 @@ namespace SuperMario
                                     {
                                         obj.Y = Location.Y - obj.Height;
                                         obj.Velocity.Y = 0;
+                                        objGrounded = true;
                                     }
                                     break;
                                 case CollisionType.CEILING:
@@ -187,7 +190,18 @@ namespace SuperMario
                                     }
                                     break;
                             }
+                            Following.PHYSICS_INVOKECOLLISION(Type, this, obj);
+                            break;
+                        }
                 }
+                if (!obj.gravityAirStateChange)
+                {
+                    if (!objGrounded)
+                        obj.InAir = true;
+                    obj.gravityAirStateChange = true;
+                }
+                if (objGrounded)
+                    obj.InAir = false;
             }
         }
 

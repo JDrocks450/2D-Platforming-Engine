@@ -1,4 +1,4 @@
-﻿namespace SuperMario.ControlMapper
+﻿namespace InputMapper
 {
     partial class Mapper
     {
