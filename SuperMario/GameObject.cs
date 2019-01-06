@@ -129,7 +129,8 @@ namespace SuperMario
 
         internal List<Collidable> Collision;
         internal bool PhysicsApplied = true;
-        internal bool Physics_Ghost = false;
+        internal bool StandingCollisionOnly = false;
+        internal bool DisableEnemyHitDetection = false;
         public bool gravityAirStateChange;
         public bool InAir
         {
@@ -150,6 +151,17 @@ namespace SuperMario
                 Texture = texture;
             OnLocationChanged += GameObject_OnLocationChanged;
             Collision = Collidable.CreateCollision(this);
+            OnCollision += GameObject_OnCollision; ;
+        }
+
+        private void GameObject_OnCollision(Collidable.CollisionType type, Collidable collision, GameObject other)
+        {
+            other.CollidedInto(type, collision, this);
+        }
+
+        public virtual void CollidedInto(Collidable.CollisionType type, Collidable col, GameObject other)
+        {
+
         }
 
         public static GameObject CreateDebugObject()
@@ -183,7 +195,7 @@ namespace SuperMario
             return true;
         }
 
-        public void Remove()
+        public virtual void Remove()
         {
             Core.GameObjects.Remove(this);
         }
@@ -209,9 +221,14 @@ namespace SuperMario
                 accel.Y = MAX_ACCEL_XY;
             Velocity += Acceleration;
             Location += Velocity;
-            if (!Physics_Ghost)
-                foreach (var col in Collision)
-                    col.UpdateCollsion();            
+            foreach (var col in Collision)
+                if (StandingCollisionOnly)
+                {
+                    if (col.Type == Collidable.CollisionType.CEILING)
+                        col.UpdateCollsion();
+                }
+                else                
+                    col.UpdateCollsion();                
             if (DefaultTextureClip)
             {
                 _textureClip = new Rectangle(0, 0, Width, Height);
@@ -233,7 +250,7 @@ namespace SuperMario
             }
             if (Core.DEBUG)
             {
-                sb.Draw(Core.BaseTexture, Hitbox, Color.Red * .5f);
+                sb.Draw(Core.BaseTexture, Hitbox, Color.Orange * .5f);
                 foreach (var col in Collision)
                     col.DrawDEBUGCollision(sb);
             }

@@ -6,33 +6,47 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using SuperMario.Items;
 
 namespace SuperMario
 {
     public class Player : Character
     {
         //player constants
-        const float VELOCITY_WALK_X = 10;
-        const float VELOCITY_RUN_X = 15;
+        const float VELOCITY_WALK_X = 6;
+        const float VELOCITY_RUN_X = 12;
         const float VELOCITY_HOLD_X = 7;
         const float STOP_ACCEL = .5f;
-        const float ACCEL = .5f;
-        const float JUMP_INIT_VELOCITY_Y = 15;
+        const float ACCEL = .3f;
+        const float JUMP_INIT_VELOCITY_Y = 11.5f;
+        const float JUMP_BOOST_TIME = .3f;
+        const float INVULNERABILITY_TIME = 3;
 
         internal override float WalkingSpeed => VELOCITY_WALK_X;
         internal override float RunningSpeed => VELOCITY_RUN_X;
         internal override float HoldingSpeed => VELOCITY_HOLD_X;
         internal override float JumpForce => JUMP_INIT_VELOCITY_Y;
         internal override bool RunningAllowed => canRun;
-        internal override bool JumpingAllowed => true;
+        internal override bool JumpingAllowed => overrideAllowJump ? overrideAllowJump : base.JumpingAllowed;
+        internal override bool AllowBreakBrickBlock => PUState != PowerupState.SM_REG;
+
+        public enum PowerupState
+        {
+            SM_REG,
+            REG,
+            FIRE,
+            STAR
+        }
+        internal PowerupState PUState = PowerupState.SM_REG;
 
         public override string TextureName => "spritesheet";
+        bool Invulnerable = false;
 
         internal enum AnimationDescription : int
         {
             SMALL_WALK = 0,
             TALL_WALK = 2,
-            TALL_JUMP = 2,
+            JUMP = 5,
             FIRE_WALK = 4
         }
 
@@ -53,15 +67,12 @@ namespace SuperMario
             var rect = new Rectangle(0, 0, 50, 100);
             var p = new Player(rect);
             p.DEBUG_Player = true;
-            p.DEBUG_Information = new UserInterface.StackPanel();
-            p.DEBUG_Information.AddToParent(Core.UILayer);
             return p;
         }
 
         public Player(Rectangle Hitbox) : base(Hitbox)
         {
             DEBUG_Player = false;
-            Physics_Ghost = true;
         }
 
         public override void Load()
@@ -70,58 +81,103 @@ namespace SuperMario
             Animation = new Spritesheet(Texture, 6, 7, 7, 7, 8, 8, 8);
         }        
 
-        UserInterface.StackPanel DEBUG_Information;
-        void PopulateDebugInfo()
+        public override void Harm()
         {
-            DEBUG_Information.Components.Clear();
-            foreach(var variable in typeof(Player).GetFields(System.Reflection.BindingFlags.Public))
+            if (Invulnerable)
+                return;
+            base.Harm();
+            Invulnerable = true;
+            switch (PUState)
             {
-                var text = new InterfaceComponent().CreateText(new InterfaceFont(),
-                    $"{variable.Name}, {variable.GetValue(this)}", Color.White);
-                text.AddToParent(DEBUG_Information);
+                case PowerupState.SM_REG:
+                    Die();
+                    break;
+                default:
+                    ChangePowerupState(PowerupState.SM_REG);
+                    break;
             }
         }
-        
+
+        public void ChangePowerupState(PowerupState newState)
+        {
+            PUState = newState;
+            switch(newState)
+            {
+                case PowerupState.SM_REG:
+                    Location += new Vector2(0, 50);
+                    break;
+                case PowerupState.REG:
+                    Location += new Vector2(0, -50);
+                    break;
+            }
+            
+        }
+
+        public override void CollidedInto(Collidable.CollisionType type, Collidable col, GameObject other)
+        {
+            if (other is Items.Item)
+            {
+                ((Item)other).Interact(this);
+            }
+        }
+
         bool _animationAlternate = false;
+        TimeSpan _invulnerabilityTimer;
         void HandleAnimation(GameTime gameTime)
         {
             animationTimer += gameTime.ElapsedGameTime;
             DefaultTextureClip = false;
-            if (!InAir)
-                switch (currentMovement)
+            //Get animation row in spritesheet by powerup state
+            int GetRow()
+            {
+                switch (PUState)
                 {
-                    case MovementMode.STILL:
-                        _textureClip = Animation.GetFrame((int)AnimationDescription.TALL_WALK, 0);
-                        break;
-                    case MovementMode.WALKING:
-                    case MovementMode.RUNNING:
-                        float interval = .05f;
-                        if (animationTimer.TotalSeconds < interval)
-                            return;
-                        animationTimer = TimeSpan.Zero;
-                        Animation.Row = (int)AnimationDescription.TALL_WALK;
-                        switch (Animation.Column)
-                        {
-                            case 0:
-                            case 1:
-                                _textureClip = Animation.AdvanceFrame();
-                                _animationAlternate = false;
-                                break;
-                            case 2:
-                                if (_animationAlternate)
-                                    _textureClip = Animation.AdvanceFrame(-1);
-                                else
-                                    _textureClip = Animation.AdvanceFrame();
-                                break;
-                            case 3:
-                                _textureClip = Animation.AdvanceFrame(-1);
-                                _animationAlternate = true;
-                                break;
-                        }
-                        break;
+                    case PowerupState.REG:
+                        return (int)AnimationDescription.TALL_WALK;
+                    case PowerupState.FIRE:
+                        return (int)AnimationDescription.FIRE_WALK;
+                    default:
+                        return (int)AnimationDescription.SMALL_WALK;
                 }
-            else
-                _textureClip = Animation.GetFrame((int)AnimationDescription.TALL_JUMP, 5);
+            }
+            switch (currentMovement)
+            {
+                case MovementMode.STILL:                    
+                    _textureClip = Animation.GetFrame(GetRow(), 0);
+                    break;
+                case MovementMode.WALKING:
+                case MovementMode.RUNNING:
+                    float interval = .05f;
+                    if (animationTimer.TotalSeconds < interval)
+                        return;
+                    animationTimer = TimeSpan.Zero;
+                    Animation.Row = GetRow();
+                    switch (Animation.Column)
+                    {
+                        case 0:
+                        case 1:
+                            _textureClip = Animation.AdvanceFrame();
+                            _animationAlternate = false;
+                            break;
+                        case 2:
+                            if (_animationAlternate)
+                                _textureClip = Animation.AdvanceFrame(-1);
+                            else
+                                _textureClip = Animation.AdvanceFrame();
+                            break;
+                        case 3:
+                            _textureClip = Animation.AdvanceFrame(-1);
+                            _animationAlternate = true;
+                            break;
+                    }
+                    break;
+                case MovementMode.AIR:
+                    _textureClip = Animation.GetFrame(GetRow(), (int)AnimationDescription.JUMP);
+                    break;
+            }
+            TextureColor = Color.White;
+            if (Invulnerable)
+                TextureColor *= _invulnerabilityTimer.Milliseconds % 2 == 0 ? 1 : .5f;
             Width = _textureClip.Width;
             Height = _textureClip.Height;
         }
@@ -131,18 +187,31 @@ namespace SuperMario
             var keyboard = Keyboard.GetState();
             HandleAnimation(gameTime);                                    
             VerifyMovement();            
-            GetInputs(keyboard);                       
-            base.Update(gameTime);            
-            if (DEBUG_Player)
-                PopulateDebugInfo();            
+            GetInputs(keyboard, gameTime);
+            HandleInvulnerabilty(gameTime);
+            base.Update(gameTime);                      
             PrevVelocity = Velocity;
         }
 
-        public void GetInputs(KeyboardState keyboard)
+        void HandleInvulnerabilty(GameTime gameTime)
         {
+            if (Invulnerable)
+            {
+                _invulnerabilityTimer += gameTime.ElapsedGameTime;
+                Invulnerable = _invulnerabilityTimer.TotalSeconds <= INVULNERABILITY_TIME;
+            }
+            else
+                _invulnerabilityTimer = TimeSpan.Zero;
+            DisableEnemyHitDetection = Invulnerable;
+        }
+
+        bool overrideAllowJump;
+        TimeSpan jumpTimer;
+
+        public void GetInputs(KeyboardState keyboard, GameTime gameTime)
+        {            
             canRun = false;
             var keyPresses = Core.ControlHandler.GetKeyControl(keyboard);
-            var flagForce = false;
             foreach (var k in keyPresses)
                 switch (k)
                 {
@@ -153,18 +222,39 @@ namespace SuperMario
                         Acceleration.X = ACCEL;
                         break;
                     case "jump":
-                        flagForce = true;
-                        Jump();
+                        if (jumpTimer.TotalSeconds < JUMP_BOOST_TIME && Velocity.Y <= 0)
+                        {
+                            if (overrideAllowJump == false && JumpingAllowed)                            
+                                overrideAllowJump = true;                                                            
+                            Jump();
+                        }
+                        else
+                        {
+                            overrideAllowJump = false;
+                            jumpTimer = TimeSpan.Zero;
+                        }
                         break;
                     case "sprint":
                         canRun = true;
                         break;
                 }
-            if (keyPresses.Count == 0 || flagForce)
-                if (currentMovement != MovementMode.STILL && !InAir)
-                    Acceleration.X = ((Velocity.X > 0) ? -1 : 1) * STOP_ACCEL;
+            if (overrideAllowJump)
+                jumpTimer += gameTime.ElapsedGameTime;
+            if (keyPresses.Count == 0)
+            {
+                if (currentMovement != MovementMode.STILL && currentMovement != MovementMode.AIR)
+                {
+                    if (Math.Abs(Velocity.X) - STOP_ACCEL < 0)
+                    {
+                        Velocity.X = 0;
+                        Acceleration.X = 0;
+                    }
+                    else
+                        Acceleration.X = ((Velocity.X > 0) ? -1 : 1) * STOP_ACCEL;
+                }
                 else
-                    Acceleration.X = 0;                                    
+                    Acceleration.X = 0;
+            }                        
         }
 
         public override void Draw(SpriteBatch sb)

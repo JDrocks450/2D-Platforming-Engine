@@ -22,7 +22,8 @@ namespace SuperMario.PrefabObjects
 
         public Prefab(Rectangle Hitbox, bool AutoLoad = true) : base(null, Hitbox)
         {
-            Load();
+            if (AutoLoad)
+                Load();
         }
 
         /// <summary>

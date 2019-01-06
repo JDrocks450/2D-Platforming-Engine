@@ -18,13 +18,14 @@ namespace SuperMario.PrefabObjects
 
         private void Block_OnCollision(Collidable.CollisionType type, Collidable collision, GameObject other)
         {
-            if (other == Core.ControlledPlayer && type == Collidable.CollisionType.CEILING) //Player hits bottom            
-                Interact();            
+            if (other == Core.ControlledPlayer && type == Collidable.CollisionType.CEILING) //Player hits bottom  
+                Interact(((Player)other).AllowBreakBrickBlock);
         }
 
-        public virtual void Interact()
+        public virtual void Interact(bool allow)
         {
-            Remove();
+            if (allow)
+                Remove();
         }
     }
 }

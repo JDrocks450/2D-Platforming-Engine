@@ -3,7 +3,9 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using SuperMario.ControlMapper;
+using SuperMario.Enemies;
 using SuperMario.PrefabObjects;
+using SuperMario.Screens;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -26,14 +28,21 @@ namespace SuperMario
         public static Texture2D BaseTexture;
 
         public static Controls ControlHandler;
-        [Obsolete("Use control handler instead, this is used for UserInterface compatibility.")]
-        public static InputHelper GlobalInput;
 
         public static ContentManager Manager;
 
-        public static UserInterface UILayer;
-
         public static Camera GameCamera;
+
+        public Screen CurrentScreen
+        {
+            get => _curScreen;
+            set
+            {
+                _curScreen = value;
+                typeofCurrentScreen = _curScreen.UnderlyingType;
+            }
+        }
+        public static Screen.SCREENS typeofCurrentScreen;
 
         public static Player ControlledPlayer
         {
@@ -50,6 +59,7 @@ namespace SuperMario
         /// An array of objects that should only ever be read from.
         /// </summary>
         public static GameObject[] SafeObjects;
+        private Screen _curScreen;
 
         public Core()
         {
@@ -71,9 +81,8 @@ namespace SuperMario
         {
             BaseTexture = new Texture2D(GraphicsDevice, 1, 1);
             BaseTexture.SetData(new Color[] { Color.White });
-            UILayer = new UserInterface(Manager, new Point(GraphicsDevice.Viewport.Width,
-                GraphicsDevice.Viewport.Height));
             GameCamera = new Camera();
+            CurrentScreen = Screen.CreateScreen(Screen.SCREENS.GAME);
             base.Initialize();
         }
 
@@ -86,10 +95,7 @@ namespace SuperMario
             spriteBatch = new SpriteBatch(GraphicsDevice);
             ControlHandler = new Controls(Path.Combine(Dir, Controls.XMLNAME));
             PrefabObjects.Prefab.PrefabWarmup();
-            GameObjects.Add(new Ground(new Rectangle(0, 350, 1000, 0)));
-            GameObjects.Add(new Block(new Rectangle(300, 150, 50, 50)));
-            GameObjects.Add(new QuestionBlock(new Rectangle(350, 150, 50, 50)));
-            GameObjects.Add(new Block(new Rectangle(400, 150, 50, 50)));
+            CurrentScreen.Load(Content);
         }
 
         /// <summary>
@@ -111,17 +117,7 @@ namespace SuperMario
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            GameCamera.Focus = ControlledPlayer;
-            SafeObjects = GameObjects.ToArray();
-            var result = ControlHandler.MenuKeys(Keyboard.GetState());
-            if (result.Contains(Controls.MENUKeys.DEBUG_PLAYER_CREATE))
-                GameObjects.Add(Player.DebugPlayer());
-            if (result.Contains(Controls.MENUKeys.DEBUG_OBJECT_CREATE))
-                GameObjects.Add(GameObject.CreateDebugObject());
-            foreach (var obj in SafeObjects)
-            {
-                obj.Update(gameTime);
-            }
+            CurrentScreen.Update(gameTime);
 
             base.Update(gameTime);
         }
@@ -134,13 +130,7 @@ namespace SuperMario
         {
             GraphicsDevice.Clear(Color.SkyBlue);
             spriteBatch.Begin(SpriteSortMode.Deferred, null, SamplerState.LinearWrap, null, null, null, GameCamera.Transform(GraphicsDevice)); //Repeating texture objects drawn here
-            foreach (var obj in SafeObjects)
-            {
-                obj.Draw(spriteBatch);
-            }            
-            spriteBatch.End();
-            spriteBatch.Begin(); //UI drawn last
-            UILayer.Draw(spriteBatch);
+            CurrentScreen.Draw(spriteBatch);
             spriteBatch.End();
             base.Draw(gameTime);
         }        

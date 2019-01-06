@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,6 +34,7 @@ namespace SuperMario
         {
             get => !InAir;
         }
+        internal virtual bool AllowBreakBrickBlock => true;        
 
         public enum MovementMode
         {
@@ -40,17 +42,57 @@ namespace SuperMario
             WALKING,
             RUNNING,
             HOLDING,
-            HOLDSTILL
+            HOLDSTILL,
+            AIR
         }
         public MovementMode currentMovement = MovementMode.STILL;
+
+        internal bool movementVerified = false;
 
         public Character(Rectangle box) : base(box)
         {
             
         }
 
-        internal void VerifyMovement()
+        void AdjustCollision()
         {
+            foreach(var collisionBox in Collision)
+            {
+                switch (collisionBox.Type)
+                {
+                    case Collidable.CollisionType.WALL:
+                        collisionBox.Size = Height - Collidable.WALL_OFFSET_Y;
+                        break;
+                    case Collidable.CollisionType.FLOOR:
+                        collisionBox.DeactivateCollisionBox(0);
+                        break;
+                }
+            }
+        }
+
+        public virtual void Harm()
+        {
+
+        }
+
+        public virtual void Die()
+        {
+            Remove();
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            VerifyMovement();
+            AdjustCollision();
+            base.Update(gameTime);
+            movementVerified = false;
+        }
+
+        internal void VerifyMovement(bool force = false)
+        {
+            if (!force)
+                if (movementVerified)
+                    return;
             if (X < Core.GameCamera.Screen.X)
             {
                 X = Core.GameCamera.Screen.X;
@@ -66,6 +108,7 @@ namespace SuperMario
                 negativeX = true;
             }
             if (!InAir)
+            {
                 if (Velocity.X > 0)
                     if (Velocity.X <= WalkingSpeed)
                         currentMovement = MovementMode.WALKING;
@@ -76,6 +119,9 @@ namespace SuperMario
                         else
                             currentMovement = MovementMode.RUNNING;
                     }
+            }
+            else
+                currentMovement = MovementMode.AIR;
             switch (currentMovement)
             {
                 case MovementMode.STILL:
@@ -86,6 +132,7 @@ namespace SuperMario
                     Velocity = Vector2.Zero;
                     Acceleration = Vector2.Zero;
                     break;
+                case MovementMode.AIR:
                 case MovementMode.WALKING:
                     if (Velocity.X + Acceleration.X > WalkingSpeed)
                         Velocity.X = WalkingSpeed - Acceleration.X;
@@ -102,17 +149,23 @@ namespace SuperMario
             this.Velocity = Velocity;
             if (negativeX)
                 this.Velocity.X *= -1;
+            movementVerified = true;
+        }
+
+        public override void Draw(SpriteBatch sb)
+        {
+            base.Draw(sb);
         }
 
         /// <summary>
         /// Performs a jump if possible
         /// </summary>
-        internal void Jump()
+        internal void Jump(float overrideForce = -1)
         {
             if (JumpingAllowed)
             {
                 Y -= .1f;
-                Velocity.Y = -JumpForce;
+                Velocity.Y = overrideForce < 0 ? -JumpForce : -overrideForce;
             }
         }        
     }
