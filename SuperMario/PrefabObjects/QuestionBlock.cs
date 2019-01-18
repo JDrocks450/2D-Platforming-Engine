@@ -33,6 +33,55 @@ namespace SuperMario.PrefabObjects
         {
             spawnLogic = logic;
             StoredItem = spawn;            
+        }        
+
+        Items.Item parseObj(byte savedObjId, out bool isInferred)
+        {
+            isInferred = false;
+            switch ((Items.Item.ITEM_TABLE)savedObjId)
+            {
+                case Items.Item.ITEM_TABLE.MUSHROOM:
+                    return new Items.Mushroom();                    
+                case Items.Item.ITEM_TABLE.FIREFLOWER:
+                    return new Items.FireFlower();
+                case Items.Item.ITEM_TABLE.QUES_INFER_FLAG:
+                    isInferred = true;
+                    return null;
+                default:
+                    return null;
+            }
+        }
+
+        public override void LoadFromFile(char[] rawBlockData)
+        {
+            var b = byte.Parse(new string(rawBlockData), System.Globalization.NumberStyles.HexNumber);
+            StoredItem = parseObj(b, out bool logic);
+            spawnLogic = logic ? SpawnObjectLogic.Inferred : SpawnObjectLogic.Literal;
+        }
+
+        public override char[] GetBlockData
+        {
+            get
+            {
+                byte b = 0;
+                for (byte i = 0; i < 10; i++)
+                {
+                    if (StoredItem == null)
+                    {
+                        if (spawnLogic == SpawnObjectLogic.Inferred)
+                            b = (byte)Items.Item.ITEM_TABLE.QUES_INFER_FLAG;
+                        else
+                            b = (byte)Items.Item.ITEM_TABLE.NULL;
+                        break;
+                    }
+                    else if (parseObj(i, out _).GetType() == StoredItem.GetType())
+                    {
+                        b = i;
+                        break;
+                    }
+                }
+                return b.ToString("X4").ToCharArray();
+            }
         }
 
         public override void Interact(bool allow = true)

@@ -27,7 +27,7 @@ namespace SuperMario.Enemies
         {
             walkingDir = WalkDirection;
             PhysicsApplied = true;
-            DefaultTextureClip = false;
+            DefaultSource = false;
             OnCollision += Goomba_OnCollision;
         }
 
@@ -82,10 +82,10 @@ namespace SuperMario.Enemies
             switch(Animation.Column)
             {
                 case 0:
-                    _textureClip = Animation.AdvanceFrame();
+                    Source = Animation.AdvanceFrame();
                     break;
                 case 1:
-                    _textureClip = Animation.AdvanceFrame(-1);
+                    Source = Animation.AdvanceFrame(-1);
                     break;
             }
         }

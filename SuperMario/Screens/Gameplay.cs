@@ -26,12 +26,18 @@ namespace SuperMario.Screens
 
         public override void Load(ContentManager content)
         {
-            GameObjects.Add(new Ground(new Rectangle(0, 350, 1000, 0)));
-            GameObjects.Add(new Block(new Rectangle(300, 150, 50, 50)));
-            GameObjects.Add(new QuestionBlock(new Rectangle(350, 150, 50, 50), QuestionBlock.SpawnObjectLogic.Inferred));
-            GameObjects.Add(new QuestionBlock(new Rectangle(400, 150, 50, 50), QuestionBlock.SpawnObjectLogic.Inferred));
-            GameObjects.Add(new Block(new Rectangle(450, 150, 50, 50)));
-            GameObjects.Add(new Goomba(new Point(500, 0)));
+            Core.levelData = LevelLoader.LevelData.LoadFile(@"D:\data.lev");
+            if (Core.levelData.LoadedObjects.Count == 0)
+            {
+                GameObjects.Add(new Ground(new Rectangle(0, 350, 1000, 0)));
+                GameObjects.Add(new Block(new Rectangle(300, 150, 50, 50)));
+                GameObjects.Add(new QuestionBlock(new Rectangle(350, 150, 50, 50), QuestionBlock.SpawnObjectLogic.Inferred));
+                GameObjects.Add(new QuestionBlock(new Rectangle(400, 150, 50, 50), QuestionBlock.SpawnObjectLogic.Inferred));
+                GameObjects.Add(new Block(new Rectangle(450, 150, 50, 50)));
+                GameObjects.Add(new Goomba(new Point(500, 0)));
+            }
+            else
+                GameObjects.AddRange(Core.levelData.LoadedObjects);
         }
 
         public override void Update(GameTime gameTime)

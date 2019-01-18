@@ -8,7 +8,18 @@ using System.Threading.Tasks;
 namespace SuperMario.Items
 {
     public abstract class Item : PrefabObjects.Prefab
-    {        
+    {
+        public enum ITEM_TABLE
+        {
+            NULL,
+            MUSHROOM,
+            FIREFLOWER,
+            /// <summary>
+            /// sets a flag in question blocks to infer the object to spawn.
+            /// </summary>
+            QUES_INFER_FLAG = 9
+        }
+
         public Item(Rectangle box) : base(box, false)
         {
 

@@ -101,8 +101,7 @@ namespace SuperMario
                     endIndex = colorIndex;
                 if (colorIndex != -1)
                     endLine = line;
-            }
-            endLine = source.Height;
+            }            
             return new Rectangle(source.X + startIndex, source.Y + startLine, endIndex - startIndex, endLine - startLine);
         }
     }

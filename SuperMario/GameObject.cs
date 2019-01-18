@@ -115,13 +115,51 @@ namespace SuperMario
 
         public Texture2D Texture;
         public Color TextureColor = Color.White;
+        internal bool DefaultSource = true;
+
+        internal Rectangle Source;
         internal bool DefaultTextureClip = true;
-        internal Rectangle _textureClip;
+        /// <summary>
+        /// A generated box the texture is rendered to
+        /// </summary>       
+        internal Rectangle TextureClip
+        {
+            get
+            {
+                if (DefaultTextureClip)
+                    return Hitbox;
+                int diffX = (Width - Source.Width)/2;
+                int diffY = (Height - Source.Height) / 2;
+                return new Rectangle((int)Location.X + diffX, (int)Location.Y + diffY, Source.Width, Source.Height);
+            }
+        }
         /// <summary>
         /// Marks this object to have it's texture repeated across its Hitbox.
         /// </summary>
         internal bool IsTextureRepeating = false;
         internal Point RepeatTextureSize;
+
+        public bool ManualCameraFollowPoint
+        {
+            get;
+            internal set;
+        } = false;
+
+        public Vector2 CameraFollowPoint
+        {
+            get
+            {
+                if (ManualCameraFollowPoint)
+                    return _camFol;
+                else
+                    return new Vector2(Width / 2, Height / 2);
+            }
+            internal set
+            {
+                _camFol = value;
+                ManualCameraFollowPoint = true;
+            }
+        }
 
         internal SpriteEffects effects;
         internal Spritesheet Animation;
@@ -141,17 +179,34 @@ namespace SuperMario
         private float _y;
         private int _w;
         private int _h;
+        private Vector2 _camFol;
 
         public GameObject(Texture2D texture, Rectangle hitbox)
         {
             if (hitbox != Rectangle.Empty) //Prefabs abuse this
                 Hitbox = hitbox;
-            _textureClip = hitbox;
+            Source = hitbox;
             if (texture != null)
                 Texture = texture;
             OnLocationChanged += GameObject_OnLocationChanged;
             Collision = Collidable.CreateCollision(this);
             OnCollision += GameObject_OnCollision; ;
+        }
+
+        /// <summary>
+        /// The raw data after the required objData that the object manages internally.
+        /// </summary>
+        /// <param name="rawBlockData"></param>
+        public virtual void LoadFromFile(char[] rawBlockData)
+        {
+
+        }
+        /// <summary>
+        /// The raw block data saved after the required objData.
+        /// </summary>
+        public virtual char[] GetBlockData
+        {
+            get => new char[0];
         }
 
         private void GameObject_OnCollision(Collidable.CollisionType type, Collidable collision, GameObject other)
@@ -229,9 +284,9 @@ namespace SuperMario
                 }
                 else                
                     col.UpdateCollsion();                
-            if (DefaultTextureClip)
+            if (DefaultSource)
             {
-                _textureClip = new Rectangle(0, 0, Width, Height);
+                Source = new Rectangle(0, 0, Width, Height);
             }
         }
 
@@ -240,7 +295,7 @@ namespace SuperMario
             switch (IsTextureRepeating)
             {
                 case false:
-                    sb.Draw(Texture, Hitbox, _textureClip, TextureColor, 0f, Vector2.Zero, effects, 0);
+                    sb.Draw(Texture, TextureClip, Source, TextureColor, 0f, Vector2.Zero, effects, 0);
                     break;
                 case true:
                     Point repeatAmount = Hitbox.Size / RepeatTextureSize;

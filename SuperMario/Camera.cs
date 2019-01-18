@@ -10,7 +10,8 @@ namespace SuperMario
 {
     public class Camera
     {
-        const int DISTANCE_FROM_WORLD_BOTTOM = 100;
+        const int DISTANCE_FROM_WORLD_BOTTOM = 50;
+        const int OFFSET_Y = 70;
 
         protected float _zoom; // Camera Zoom
         protected float _rotation; //Camera Rotation
@@ -33,6 +34,8 @@ namespace SuperMario
             get; set;
         }
 
+        public bool HoldingCamera = false;
+
         /// <summary>
         /// reduce camera movement by using one character height for Y calculations.
         /// </summary>
@@ -51,9 +54,10 @@ namespace SuperMario
             {
                 if (charBaseHeight == 0)
                     charBaseHeight = player.Height;
-                var center = new Vector2(player.X + (player.Width / 2), (player.Y + (charBaseHeight / 2)));
+                var center = player.Location + player.CameraFollowPoint;
                 center += new Vector2(screen.Width, screen.Height) / 2;
-                if (Core.WORLD_BOTTOM - center.Y > DISTANCE_FROM_WORLD_BOTTOM)
+                center.Y -= OFFSET_Y;
+                if (Core.WORLD_BOTTOM - center.Y > DISTANCE_FROM_WORLD_BOTTOM && !HoldingCamera)
                 {
                     if (!CanMoveBackwards)
                     {
@@ -64,6 +68,10 @@ namespace SuperMario
                         Pos.X = center.X;
                     Pos.Y = center.Y;
                     Screen = new Rectangle((int)Pos.X - screen.Width, (int)Pos.Y - screen.Height, screen.Width, screen.Height);
+                }
+                else
+                {
+
                 }
             }           
             _transform =       // Thanks to o KB o for this solution

@@ -22,6 +22,8 @@ namespace SuperMario
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
+        public static LevelLoader.LevelData levelData;
+
         public static int WORLD_BOTTOM = 700;
 
         public static bool DEBUG = false;
@@ -66,6 +68,8 @@ namespace SuperMario
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             Manager = Content;
+            graphics.PreferredBackBufferWidth = 1024;
+            graphics.PreferredBackBufferHeight = 768;            
 #if DEBUG
             DEBUG = true;
 #endif
@@ -104,7 +108,9 @@ namespace SuperMario
         /// </summary>
         protected override void UnloadContent()
         {
-
+            if (!Player.PLAYER_MOVED)
+                foreach (var obj in SafeObjects)
+                    levelData.WriteObjectDataToFile(obj);
         }
 
         /// <summary>

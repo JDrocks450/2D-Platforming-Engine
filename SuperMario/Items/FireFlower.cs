@@ -19,6 +19,7 @@ namespace SuperMario.Items
         public override void Interact(Player other)
         {
             other.ChangePowerupState(Player.PowerupState.FIRE);
+            Remove();
         }
     }
 }

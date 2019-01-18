@@ -37,7 +37,9 @@ namespace SuperMario
             FIRE,
             STAR
         }
-        internal PowerupState PUState = PowerupState.SM_REG;
+        internal PowerupState PUState;
+
+        public static bool PLAYER_MOVED = false;
 
         public override string TextureName => "spritesheet";
         bool Invulnerable = false;
@@ -73,6 +75,8 @@ namespace SuperMario
         public Player(Rectangle Hitbox) : base(Hitbox)
         {
             DEBUG_Player = false;
+            DefaultTextureClip = false;
+            ChangePowerupState(PowerupState.SM_REG);
         }
 
         public override void Load()
@@ -105,12 +109,15 @@ namespace SuperMario
             {
                 case PowerupState.SM_REG:
                     Location += new Vector2(0, 50);
+                    CameraFollowPoint = new Vector2(25, 15);
+                    Height = 45;
                     break;
                 case PowerupState.REG:
                     Location += new Vector2(0, -50);
+                    CameraFollowPoint = new Vector2(25, 25);
+                    Height = 90;
                     break;
-            }
-            
+            }            
         }
 
         public override void CollidedInto(Collidable.CollisionType type, Collidable col, GameObject other)
@@ -126,7 +133,7 @@ namespace SuperMario
         void HandleAnimation(GameTime gameTime)
         {
             animationTimer += gameTime.ElapsedGameTime;
-            DefaultTextureClip = false;
+            DefaultSource = false;
             //Get animation row in spritesheet by powerup state
             int GetRow()
             {
@@ -143,7 +150,7 @@ namespace SuperMario
             switch (currentMovement)
             {
                 case MovementMode.STILL:                    
-                    _textureClip = Animation.GetFrame(GetRow(), 0);
+                    Source = Animation.GetFrame(GetRow(), 0);
                     break;
                 case MovementMode.WALKING:
                 case MovementMode.RUNNING:
@@ -156,40 +163,38 @@ namespace SuperMario
                     {
                         case 0:
                         case 1:
-                            _textureClip = Animation.AdvanceFrame();
+                            Source = Animation.AdvanceFrame();
                             _animationAlternate = false;
                             break;
                         case 2:
                             if (_animationAlternate)
-                                _textureClip = Animation.AdvanceFrame(-1);
+                                Source = Animation.AdvanceFrame(-1);
                             else
-                                _textureClip = Animation.AdvanceFrame();
+                                Source = Animation.AdvanceFrame();
                             break;
                         case 3:
-                            _textureClip = Animation.AdvanceFrame(-1);
+                            Source = Animation.AdvanceFrame(-1);
                             _animationAlternate = true;
                             break;
                     }
                     break;
                 case MovementMode.AIR:
-                    _textureClip = Animation.GetFrame(GetRow(), (int)AnimationDescription.JUMP);
+                    Source = Animation.GetFrame(GetRow(), (int)AnimationDescription.JUMP);
                     break;
             }
             TextureColor = Color.White;
             if (Invulnerable)
                 TextureColor *= _invulnerabilityTimer.Milliseconds % 2 == 0 ? 1 : .5f;
-            Width = _textureClip.Width;
-            Height = _textureClip.Height;
         }
 
         public override void Update(GameTime gameTime)
-        {                       
+        {
             var keyboard = Keyboard.GetState();
-            HandleAnimation(gameTime);                                    
-            VerifyMovement();            
+            HandleAnimation(gameTime);
+            VerifyMovement();
             GetInputs(keyboard, gameTime);
             HandleInvulnerabilty(gameTime);
-            base.Update(gameTime);                      
+            base.Update(gameTime);
             PrevVelocity = Velocity;
         }
 
@@ -254,7 +259,8 @@ namespace SuperMario
                 }
                 else
                     Acceleration.X = 0;
-            }                        
+            }
+            else PLAYER_MOVED = true;
         }
 
         public override void Draw(SpriteBatch sb)
