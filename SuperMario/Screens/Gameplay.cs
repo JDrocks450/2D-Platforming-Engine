@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,8 +26,8 @@ namespace SuperMario.Screens
         Camera GameCamera => Core.GameCamera;
 
         public override void Load(ContentManager content)
-        {
-            Core.levelData = LevelLoader.LevelData.LoadFile(@"D:\data.lev");
+        {            
+            Core.levelData = LevelLoader.LevelData.LoadFile(Path.Combine(Environment.CurrentDirectory,"data.lev"));
             if (Core.levelData.LoadedObjects.Count == 0)
             {
                 GameObjects.Add(new Ground(new Rectangle(0, 350, 1000, 0)));

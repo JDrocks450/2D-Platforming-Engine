@@ -16,13 +16,6 @@
 #begin control.xml
 /copy:control.xml
 
-#begin Fonts/Super-Mario-Bros--3.ttf
-/importer:FontDescriptionImporter
-/processor:FontDescriptionProcessor
-/processorParam:PremultiplyAlpha=True
-/processorParam:TextureFormat=Compressed
-/build:Fonts/Super-Mario-Bros--3.ttf
-
 #begin Textures/brick.png
 /importer:TextureImporter
 /processor:TextureProcessor

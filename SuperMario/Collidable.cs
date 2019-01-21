@@ -114,7 +114,7 @@ namespace SuperMario
         }
 
         public Collidable(Vector2 Position, int Length, GameObject follow, CollisionType type, WallDirection direction = WallDirection.LEFT)            
-        {
+        {            
             Location = Position;
             Size = Length;
             Type = type;

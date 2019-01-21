@@ -110,7 +110,7 @@ namespace SuperMario
         {
             if (!Player.PLAYER_MOVED)
                 foreach (var obj in SafeObjects)
-                    levelData.WriteObjectDataToFile(obj);
+                    levelData.WriteObjectDataToFile(obj);           
         }
 
         /// <summary>
