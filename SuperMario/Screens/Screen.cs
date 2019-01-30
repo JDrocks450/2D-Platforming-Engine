@@ -14,7 +14,8 @@ namespace SuperMario.Screens
         public enum SCREENS
         {
             LEVEL_START,
-            GAME
+            GAME,
+            CREATOR
         }
 
         public SCREENS UnderlyingType;
@@ -24,12 +25,17 @@ namespace SuperMario.Screens
             UnderlyingType = type;
         }
 
+        internal List<GameObject> GameObjects => Core.GameObjects;
+        internal Camera GameCamera => Core.GameCamera;
+
         public static Screen CreateScreen(SCREENS type)
         {
             switch (type)
             {
                 case SCREENS.GAME:
                     return new Gameplay();
+                case SCREENS.CREATOR:
+                    return new LevelCreator();
                 default:
                     return new Gameplay();
             }            

@@ -16,6 +16,13 @@
 #begin control.xml
 /copy:control.xml
 
+#begin Fonts/File.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:Fonts/File.spritefont;Fonts/Font.spritefont
+
 #begin Textures/brick.png
 /importer:TextureImporter
 /processor:TextureProcessor

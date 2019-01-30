@@ -17,6 +17,7 @@ namespace SuperMario.PrefabObjects
         {
             get => "rock";
         }
+        public override Point PreferredSize => new Point(50);
 
         /// <summary>
         /// Height component is automatically adjusted at runtime.
@@ -28,7 +29,7 @@ namespace SuperMario.PrefabObjects
             PhysicsApplied = false;
             OnLocationChanged += Ground_OnLocationChanged;
             UpdateHeight(Hitbox.Y);
-            CreateBushes();
+            //CreateBushes();
         }
         
         void CreateBushes()

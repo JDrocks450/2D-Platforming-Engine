@@ -19,6 +19,8 @@ namespace SuperMario
 
         public bool CanMoveBackwards = true;
 
+        public bool CameraIgnoreWorldBottom = false;
+
         public float Zoom
         {
             get { return _zoom; }
@@ -57,7 +59,9 @@ namespace SuperMario
                 var center = player.Location + player.CameraFollowPoint;
                 center += new Vector2(screen.Width, screen.Height) / 2;
                 center.Y -= OFFSET_Y;
-                if (Core.WORLD_BOTTOM - center.Y > DISTANCE_FROM_WORLD_BOTTOM && !HoldingCamera)
+                int dist = DISTANCE_FROM_WORLD_BOTTOM;
+                dist = (CameraIgnoreWorldBottom) ? -9999 : dist;
+                if (Core.WORLD_BOTTOM - center.Y > dist && !HoldingCamera)
                 {
                     if (!CanMoveBackwards)
                     {

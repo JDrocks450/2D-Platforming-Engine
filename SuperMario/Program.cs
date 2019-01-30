@@ -14,8 +14,16 @@ namespace SuperMario
         static void Main()
         {
             //new ControlMapper.Mapper().ShowDialog();
+            start:
             using (var game = new Core())
-                game.Run();
+            {
+                game.Run();                
+            }
+            if (Core.RESTART_FLAG)
+            {
+                Core.RESTART_FLAG = false;
+                goto start;
+            }
         }
     }
 }

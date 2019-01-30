@@ -15,6 +15,11 @@ namespace SuperMario.PrefabObjects
             get;
         }
 
+        public virtual Point PreferredSize
+        {
+            get;
+        }
+
         /// <summary>
         /// Gets textures by name stored in TextureName property of Prefabs
         /// </summary>
@@ -41,6 +46,11 @@ namespace SuperMario.PrefabObjects
             if (!Prefab.LoadedTextures.Keys.Contains(name))
                 Prefab.LoadedTextures.Add(name, Core.Manager.Load<Texture2D>(name));
             Texture = LoadedTextures[name];
+            if (Width + Height == 0)
+            {
+                Width = PreferredSize.X;
+                Height = PreferredSize.Y;
+            }
         }
 
         public Texture2D GetTexture(string name)

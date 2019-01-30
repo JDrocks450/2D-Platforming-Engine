@@ -40,6 +40,22 @@ namespace SuperMario
             }
         }
 
+        public bool Disabled
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Represents whether or not the camera is focused on the object.
+        /// </summary>
+        public bool Focused
+        {
+            get => Core.GameCamera.Focus == this;
+        }
+
+        public string Name => Enum.GetName(typeof(LevelLoader.LevelData.OBJ_TABLE), LevelLoader.LevelData.GetIDByInstance(this));
+
         public int Width
         {
             get => _w;
@@ -228,7 +244,7 @@ namespace SuperMario
 
         private void GameObject_OnLocationChanged(Vector2 old, Vector2 updated, bool? IsXChange)
         {
-            //throw new NotImplementedException();
+            
         }
 
         internal void SetupRepeatingTexture(Point TextureSize)

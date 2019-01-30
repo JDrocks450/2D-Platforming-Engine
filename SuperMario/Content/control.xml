@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Mapper>
   <Binding1>
     <Name>left</Name>
@@ -20,4 +20,12 @@
     <Name>sprint</Name>
     <Key>[shift]</Key>
   </Binding5>
+  <Binding6>
+    <Name>up</Name>
+    <Key>W</Key>
+  </Binding6>
+  <Binding7>
+    <Name>down</Name>
+    <Key>S</Key>
+  </Binding7>
 </Mapper>

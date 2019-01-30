@@ -19,15 +19,11 @@ namespace SuperMario.Screens
     {
         public Gameplay() : base(SCREENS.GAME)
         {
-
+            Core.DEBUG = false;
         }
-        
-        List<GameObject> GameObjects => Core.GameObjects;
-        Camera GameCamera => Core.GameCamera;
 
         public override void Load(ContentManager content)
-        {            
-            Core.levelData = LevelLoader.LevelData.LoadFile(Path.Combine(Environment.CurrentDirectory,"data.lev"));
+        {                        
             if (Core.levelData.LoadedObjects.Count == 0)
             {
                 GameObjects.Add(new Ground(new Rectangle(0, 350, 1000, 0)));

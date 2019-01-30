@@ -14,9 +14,9 @@ namespace SuperMario.LevelLoader
 
         string uri;
 
-        public enum OBJ_TABLE
+        public enum OBJ_TABLE : byte
         {
-            EMPTY,
+            AIR,
             BLOCK,
             MARIO,
             QUES_BLOCK,
@@ -38,9 +38,11 @@ namespace SuperMario.LevelLoader
 
         public List<GameObject> LoadedObjects = new List<GameObject>();
 
-        int[] dataLengthTable = new int[] { 8, 8, 4, 4,8,8 };
+        int[] dataLengthTable = new int[] { 8, 8, 4, 4, 8, 8 };
 
         byte[] fileData;
+
+        public static string defaultURI = Path.Combine(Environment.CurrentDirectory, "data.lev");
 
         public static LevelData LoadFile(string url)
         {
@@ -49,7 +51,10 @@ namespace SuperMario.LevelLoader
             if (true)
             {
                 if (!File.Exists(url))
-                    File.Create(url);                
+                {
+                    File.Create(url);
+                    return data;
+                }
             }
             using (var file = File.OpenRead(url))
             {
@@ -105,12 +110,12 @@ namespace SuperMario.LevelLoader
             }
             if (block.Count > 0)
                 Parse(block.ToArray());
-        }        
+        }
 
         void Parse(char[] block)
         {
-            int X =0, Y=0;
-            int width=0, height=0;
+            int X = 0, Y = 0;
+            int width = 0, height = 0;
             byte OBJID = 0;
             int offset = 0;
             for (int i = 0; i < dataLengthTable.Length; i++)
@@ -153,10 +158,12 @@ namespace SuperMario.LevelLoader
             if (obj is null)
                 throw new Exception("obj not loaded");
             obj.LoadFromFile(raw);
+            if (obj is PrefabObjects.Prefab)
+                (obj as PrefabObjects.Prefab).Load();
             LoadedObjects.Add(obj);
         }
 
-        public GameObject GetInstanceByID(byte objID, Rectangle StartPos)
+        public static GameObject GetInstanceByID(byte objID, Rectangle StartPos)
         {
             GameObject obj = null;
             var box = StartPos;
@@ -184,9 +191,9 @@ namespace SuperMario.LevelLoader
             return obj;
         }
 
-        public byte GetIDByInstance(GameObject obj)
+        public static byte GetIDByInstance(GameObject obj)
         {
-            for(byte i = 0; i < 255; i++)
+            for (byte i = 0; i < 255; i++)
             {
                 var t = GetInstanceByID(i, new Rectangle())?.GetType();
                 if (t == null)
@@ -202,7 +209,7 @@ namespace SuperMario.LevelLoader
             int offset = 0;
             List<byte> block = new List<byte>();
             block.Add(ASCIIEncoding.ASCII.GetBytes(" ")[0]);
-            foreach(var length in dataLengthTable)
+            foreach (var length in dataLengthTable)
             {
                 string data = "";
                 switch ((DATA_LAYOUT)offset)
@@ -231,12 +238,19 @@ namespace SuperMario.LevelLoader
                 block.AddRange(Encoding.ASCII.GetBytes(data));
                 offset += length;
             }
-            block.AddRange(Encoding.ASCII.GetBytes(obj.GetBlockData));
+            block.AddRange(Encoding.ASCII.GetBytes(obj.GetBlockData));            
             using (var f = File.OpenWrite(uri))
             {
                 f.Position = f.Length;
                 f.Write(block.ToArray(), 0, block.Count);
             }
+        }
+
+        public void WriteAllObjects(List<GameObject> objects)
+        {
+            File.WriteAllText(uri, String.Empty);
+            foreach (var obj in objects)
+                WriteObjectDataToFile(obj);
         }
     }
 }

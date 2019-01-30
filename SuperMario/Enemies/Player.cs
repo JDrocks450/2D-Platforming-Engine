@@ -192,7 +192,8 @@ namespace SuperMario
             var keyboard = Keyboard.GetState();
             HandleAnimation(gameTime);
             VerifyMovement();
-            GetInputs(keyboard, gameTime);
+            if (Focused)
+                GetInputs(keyboard, gameTime);
             HandleInvulnerabilty(gameTime);
             base.Update(gameTime);
             PrevVelocity = Velocity;

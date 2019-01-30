@@ -10,6 +10,7 @@ namespace SuperMario.PrefabObjects
     public class QuestionBlock : Block
     {
         public override string TextureName => !Opened ? "question" : "unbreakable";
+        public override Point PreferredSize => new Point(50);
 
         bool Opened = false;
         

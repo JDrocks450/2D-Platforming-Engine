@@ -10,6 +10,8 @@ namespace SuperMario.PrefabObjects
     public class Block : Prefab
     {
         public override string TextureName => "brick";
+        public override Point PreferredSize => new Point(50);
+
         public Block(Rectangle Box) : base(Box)
         {
             PhysicsApplied = false;

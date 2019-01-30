@@ -51,12 +51,14 @@
     <Compile Include="Enemies\Character.cs" />
     <Compile Include="Enemies\Enemy.cs" />
     <Compile Include="Enemies\Goomba.cs" />
-    <Compile Include="GameObject.cs" />
+    <Compile Include="PrefabObjects\GameObject.cs" />
     <Compile Include="Enemies\Player.cs" />
     <Compile Include="Items\FireFlower.cs" />
     <Compile Include="Items\Item.cs" />
     <Compile Include="Items\Mushroom.cs" />
-    <Compile Include="LevelLoader\LevelData.cs" />
+    <Compile Include="UI\ObjectSpawner.cs" />
+    <Compile Include="Screens\Level Creator.cs" />
+    <Compile Include="Levels\LevelData.cs" />
     <Compile Include="PrefabObjects\Block.cs" />
     <Compile Include="PrefabObjects\Bush.cs" />
     <Compile Include="PrefabObjects\Ground.cs" />
@@ -69,6 +71,8 @@
     <Compile Include="Screens\Level Start.cs" />
     <Compile Include="Screens\Screen.cs" />
     <Compile Include="Spritesheet.cs" />
+    <Compile Include="UI\Tooltip.cs" />
+    <Compile Include="UI\UIComponent.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="MonoGame.Framework">

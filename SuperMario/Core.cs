@@ -22,9 +22,11 @@ namespace SuperMario
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
+        public const int SCRWIDTH = 1024, SCRHEIGHT = 768;
+
         public static LevelLoader.LevelData levelData;
 
-        public static int WORLD_BOTTOM = 700;
+        public static int WORLD_BOTTOM = 800;
 
         public static bool DEBUG = false;
         public static Texture2D BaseTexture;
@@ -34,6 +36,8 @@ namespace SuperMario
         public static ContentManager Manager;
 
         public static Camera GameCamera;
+
+        public static bool RESTART_FLAG = false;
 
         public Screen CurrentScreen
         {
@@ -51,7 +55,11 @@ namespace SuperMario
             get => (Player)GameObjects.Find(x => x is Player);
         }
 
-        public static string Dir = Path.Combine(Environment.CurrentDirectory, "Content");        
+        public static Point MousePosition;
+
+        public static string Dir = Path.Combine(Environment.CurrentDirectory, "Content");
+
+        public static List<UI.UIComponent> UIElements = new List<UI.UIComponent>();
 
         /// <summary>
         /// Represents a safely editable list of objects that won't crash the game if changed.
@@ -63,13 +71,15 @@ namespace SuperMario
         public static GameObject[] SafeObjects;
         private Screen _curScreen;
 
+        public static bool MouseVisible = false;
+
         public Core()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             Manager = Content;
-            graphics.PreferredBackBufferWidth = 1024;
-            graphics.PreferredBackBufferHeight = 768;            
+            graphics.PreferredBackBufferWidth = SCRWIDTH;
+            graphics.PreferredBackBufferHeight = SCRHEIGHT;            
 #if DEBUG
             DEBUG = true;
 #endif
@@ -99,6 +109,10 @@ namespace SuperMario
             spriteBatch = new SpriteBatch(GraphicsDevice);
             ControlHandler = new Controls(Path.Combine(Dir, Controls.XMLNAME));
             PrefabObjects.Prefab.PrefabWarmup();
+            UI.Tooltip.Load(Content, SCRWIDTH, SCRHEIGHT, Core.BaseTexture);
+            levelData = LevelLoader.LevelData.LoadFile(LevelLoader.LevelData.defaultURI);
+            if (CurrentScreen is LevelCreator)
+            ((LevelCreator)CurrentScreen).LoadLevel(levelData);
             CurrentScreen.Load(Content);
         }
 
@@ -109,10 +123,10 @@ namespace SuperMario
         protected override void UnloadContent()
         {
             if (!Player.PLAYER_MOVED)
-                foreach (var obj in SafeObjects)
-                    levelData.WriteObjectDataToFile(obj);           
+                levelData.WriteAllObjects(GameObjects);          
         }
 
+        static List<UI.UIComponent> UISafeElements = new List<UI.UIComponent>();
         /// <summary>
         /// Allows the game to run logic such as updating the world,
         /// checking for collisions, gathering input, and playing audio.
@@ -123,8 +137,15 @@ namespace SuperMario
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
+            MousePosition = GameCamera.Screen.Location + Mouse.GetState().Position;
+            UISafeElements.Clear();
+            UISafeElements.AddRange(UIElements);
             CurrentScreen.Update(gameTime);
-
+            IsMouseVisible = MouseVisible;
+            if (RESTART_FLAG)                            
+                Exit();
+            foreach (var uielement in UISafeElements)
+                uielement.Update();
             base.Update(gameTime);
         }
 
@@ -136,7 +157,12 @@ namespace SuperMario
         {
             GraphicsDevice.Clear(Color.SkyBlue);
             spriteBatch.Begin(SpriteSortMode.Deferred, null, SamplerState.LinearWrap, null, null, null, GameCamera.Transform(GraphicsDevice)); //Repeating texture objects drawn here
-            CurrentScreen.Draw(spriteBatch);
+            CurrentScreen.Draw(spriteBatch);            
+            spriteBatch.End();
+            spriteBatch.Begin();
+            foreach (var element in UISafeElements)
+                element.Draw(spriteBatch);
+            UI.Tooltip.Draw(spriteBatch);
             spriteBatch.End();
             base.Draw(gameTime);
         }        

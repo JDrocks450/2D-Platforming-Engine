@@ -93,11 +93,6 @@ namespace SuperMario
             if (!force)
                 if (movementVerified)
                     return;
-            if (X < Core.GameCamera.Screen.X)
-            {
-                X = Core.GameCamera.Screen.X;
-                this.Velocity.X = 0;
-            }
             bool negativeX = false;
             if (this.Velocity.X == 0 && !InAir)
                 currentMovement = MovementMode.STILL;

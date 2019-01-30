@@ -10,6 +10,7 @@ namespace SuperMario.PrefabObjects
     public class Bush : Prefab
     {
         public override string TextureName => "bush";
+        public override Point PreferredSize => new Point(WIDTH, HEIGHT);
 
         public const int WIDTH = 250, HEIGHT = 50;
 
