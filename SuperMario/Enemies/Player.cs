@@ -28,7 +28,7 @@ namespace SuperMario
         internal override float JumpForce => JUMP_INIT_VELOCITY_Y;
         internal override bool RunningAllowed => canRun;
         internal override bool JumpingAllowed => overrideAllowJump ? overrideAllowJump : base.JumpingAllowed;
-        internal override bool AllowBreakBrickBlock => PUState != PowerupState.SM_REG;
+        internal override bool AllowBreakBrickBlock => PUState != PowerupState.SM_REG;        
 
         public enum PowerupState
         {
@@ -42,6 +42,8 @@ namespace SuperMario
         public static bool PLAYER_MOVED = false;
 
         public override string TextureName => "spritesheet";
+        public override string IconName => "Icons/mario";
+        public override Point IconSize => new Point(85, 50);
         bool Invulnerable = false;
 
         internal enum AnimationDescription : int

@@ -19,7 +19,7 @@ namespace SuperMario.Screens
     {
         public Gameplay() : base(SCREENS.GAME)
         {
-            Core.DEBUG = false;
+
         }
 
         public override void Load(ContentManager content)

@@ -26,16 +26,23 @@ namespace SuperMario.UI
 
         public static bool Showing = true;
         public static string ShowingText = "EMPTY";
+        public static object currentSender
+        {
+            get;
+            private set;
+        }
 
-        public static void ShowTooltip(string TEXT)
+        public static void ShowTooltip(object sender, string TEXT)
         {
             ShowingText = TEXT;
             Showing = true;
+            currentSender = sender;
         }
 
-        public static void HideTooltip()
+        public static void HideTooltip(object sender)
         {
-            Showing = false;
+            if (currentSender == sender)
+                Showing = false;
         }
 
         public static void Draw(SpriteBatch sb)
@@ -45,9 +52,12 @@ namespace SuperMario.UI
             Point p = Mouse.GetState().Position;
             var tSize = FONT.MeasureString(ShowingText);
             var rect = new Rectangle(p.X + MARGIN, p.Y + MARGIN, 2 * MARGIN + (int)tSize.X, 2 * MARGIN + (int)tSize.Y);
-            if (rect.Right > w)
-                rect.X -= (rect.Width + MARGIN);
             var rect2 = new Rectangle(p.X+1 + MARGIN, p.Y+1 + MARGIN, (2 * MARGIN + (int)tSize.X) - 2, (2 * MARGIN + (int)tSize.Y) - 2);
+            if (rect.Right > w)
+            {
+                rect.X -= (rect.Width + MARGIN);
+                rect2.X = rect.X + 1;
+            }            
             sb.Draw(t, rect, Color.Black);
             sb.Draw(t, rect2, Color.White);
             sb.DrawString(FONT, ShowingText, (rect.Location + new Point(MARGIN)).ToVector2(), Color.Black);

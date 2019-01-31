@@ -13,8 +13,11 @@ namespace SuperMario.Enemies
         const int WIDTH = 50, HEIGHT = 50;        
 
         public override string TextureName => "enemies/goomba";
+        public override string IconName => "Icons/goomba";
         internal override float WalkingSpeed => .75f;
-        
+        public override Point PreferredSize => new Point(WIDTH, HEIGHT);
+        public override Point IconSize => new Point(100, 50);
+
         public enum Direction
         {
             Left,

@@ -50,25 +50,34 @@ namespace SuperMario
         {
             if (Populated)
                 return;
+            int i = 0;
             foreach(byte obj in Enum.GetValues(typeof(LevelLoader.LevelData.OBJ_TABLE)))
             {
+                if (i == 0)
+                {
+                    i++;
+                    continue;
+                }
                 var o = LevelLoader.LevelData.GetInstanceByID(obj, new Rectangle());
                 Texture2D texture = null;
                 Point preferredSize = new Point(ITEM_SIZE);
                 if (o is PrefabObjects.Prefab)
                 {
-                    texture = Core.Manager.Load<Texture2D>("Textures/" + (o as PrefabObjects.Prefab).TextureName);
-                    preferredSize = (o as PrefabObjects.Prefab).PreferredSize;
+                    texture = Core.Manager.Load<Texture2D>("Textures/" + (o as PrefabObjects.Prefab).IconName);
+                    preferredSize = (o as PrefabObjects.Prefab).IconSize;
                 }
                 items.Add(obj, new Tuple<Texture2D, int, int>(texture, preferredSize.X, preferredSize.Y));
+                i++;
             }
             Populated = true;
         }
 
+        bool buttonsDisabled = true;
+
         bool Populated = false;
         int lastSCRHeight = 0;
         public override void Update()
-        {
+        {            
             Width = Core.GameCamera.Screen.Width;
             if (lastSCRHeight != Core.GameCamera.Screen.Height)
             {
@@ -77,15 +86,19 @@ namespace SuperMario
             }
             if (Y < 0)
             {
-                Y += 1;
+                Y += 5;
                 return;
             }
+            if (Mouse.GetState().LeftButton == ButtonState.Released)
+                buttonsDisabled = false;
             var msr = new Rectangle(Mouse.GetState().Position, new Point(1));
             int i = 0;
+            if (!buttonsDisabled)
             foreach (var r in itemBoxes) {
                 if (msr.Intersects(r) && Mouse.GetState().LeftButton == ButtonState.Pressed)
                 {
                     OnObjectSpawnRequested?.Invoke(items.Skip(i).Take(1).First().Key);
+                    buttonsDisabled = true;
                     break;
                 }
                 i++;
@@ -118,11 +131,11 @@ namespace SuperMario
                 {
                     color = Color.White * .75f;
                     sb.Draw(Core.BaseTexture, rect, Color.White);
-                    Tooltip.ShowTooltip(Enum.GetName(typeof(LevelLoader.LevelData.OBJ_TABLE), tuple.Key));
+                    Tooltip.ShowTooltip(this, Enum.GetName(typeof(LevelLoader.LevelData.OBJ_TABLE), tuple.Key));
                     tooltipOpened = true;
                 }
                 else if (!tooltipOpened)
-                    Tooltip.HideTooltip();
+                    Tooltip.HideTooltip(this);
                 sb.Draw(tex,rect,color);
                 itemBoxes[i] = rect;
                 Xlast = Xloc + tuple.Value.Item2;

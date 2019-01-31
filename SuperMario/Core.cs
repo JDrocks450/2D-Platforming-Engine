@@ -96,7 +96,7 @@ namespace SuperMario
             BaseTexture = new Texture2D(GraphicsDevice, 1, 1);
             BaseTexture.SetData(new Color[] { Color.White });
             GameCamera = new Camera();
-            CurrentScreen = Screen.CreateScreen(Screen.SCREENS.GAME);
+            CurrentScreen = Screen.CreateScreen(Screen.SCREENS.CREATOR);
             base.Initialize();
         }
 
@@ -112,7 +112,7 @@ namespace SuperMario
             UI.Tooltip.Load(Content, SCRWIDTH, SCRHEIGHT, Core.BaseTexture);
             levelData = LevelLoader.LevelData.LoadFile(LevelLoader.LevelData.defaultURI);
             if (CurrentScreen is LevelCreator)
-            ((LevelCreator)CurrentScreen).LoadLevel(levelData);
+                ((LevelCreator)CurrentScreen).LoadLevel(levelData);
             CurrentScreen.Load(Content);
         }
 
@@ -122,8 +122,11 @@ namespace SuperMario
         /// </summary>
         protected override void UnloadContent()
         {
-            if (!Player.PLAYER_MOVED)
-                levelData.WriteAllObjects(GameObjects);          
+            if (CurrentScreen is LevelCreator) {
+                var r = System.Windows.Forms.MessageBox.Show("Would you like to save the level? Any changes made will be lost otherwise.", "Save Level?", System.Windows.Forms.MessageBoxButtons.YesNo);
+                if (r == System.Windows.Forms.DialogResult.Yes)
+                    levelData.WriteAllObjects(GameObjects);
+            }     
         }
 
         static List<UI.UIComponent> UISafeElements = new List<UI.UIComponent>();

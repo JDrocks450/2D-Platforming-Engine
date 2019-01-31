@@ -15,9 +15,19 @@ namespace SuperMario.PrefabObjects
             get;
         }
 
+        public virtual string IconName
+        {
+            get => TextureName;
+        }
+
         public virtual Point PreferredSize
         {
             get;
+        }
+
+        public virtual Point IconSize
+        {
+            get => PreferredSize;
         }
 
         /// <summary>

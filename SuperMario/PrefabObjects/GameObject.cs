@@ -276,6 +276,16 @@ namespace SuperMario
             OnCollision?.Invoke(type, collidable, other);
         }
 
+        public void CorrectObjectPosition()
+        {
+            if (X < 0)
+                X = 0;
+            if (Y < 0)
+                Y = 0;
+            if (Y > Core.WORLD_BOTTOM)
+                Y = Core.WORLD_BOTTOM;
+        }
+
         public virtual void Update(GameTime gameTime)
         {
             if (VerifyGravity())

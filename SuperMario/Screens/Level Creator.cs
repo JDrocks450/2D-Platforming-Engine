@@ -42,6 +42,18 @@ namespace SuperMario.Screens
 
         const int GRID_SIZE = 50;
 
+        enum PLACEMENT_MODE
+        {
+            NONE,
+            DRAG,
+            RESIZE,
+            DELETE,
+            ERASER,
+            MULTI_PLACE
+        }
+
+        PLACEMENT_MODE currentPMode = PLACEMENT_MODE.NONE;
+
         CameraObject co;
         ObjectSpawner os;
         public LevelCreator() : base(SCREENS.CREATOR)
@@ -67,7 +79,153 @@ namespace SuperMario.Screens
         public override void Load(ContentManager content)
         {
             GameObjects.AddRange(Core.levelData.LoadedObjects);
+            foreach (var obj in GameObjects)
+                obj.CorrectObjectPosition();
+        }        
+
+        bool CheckIfInsideObject(GameObject obj, out GameObject intersect)
+        {
+            return CheckIfInsideObject(obj.Location, obj.Width, obj.Height, out intersect, obj);            
         }
+        bool CheckIfInsideObject(Vector2 p, int w, int h, out GameObject intersects, GameObject exclude = null)
+        {
+            foreach (var intersect in GameObjects)
+            {
+                if (intersect.Hitbox.Intersects(new Rectangle(p.ToPoint(), new Point(w, h))) && intersect != exclude)
+                {
+                    intersects = intersect;
+                    return true;
+                }
+            }
+            intersects = null;
+            return false;
+        }
+
+        void GetInputs()
+        {
+            var r = Keyboard.GetState().GetPressedKeys();
+            if (!r.Any() && currentPMode != PLACEMENT_MODE.NONE)
+            {
+                currentPMode = PLACEMENT_MODE.DRAG;
+                return;
+            }
+            foreach (var key in r)
+                switch (key)
+                {
+                    case Keys.LeftControl:
+                        if (currentPMode != PLACEMENT_MODE.NONE)
+                        {
+                            currentPMode = PLACEMENT_MODE.RESIZE;
+                        }
+                        break;
+                    case Keys.Delete:
+                        if (currentPMode != PLACEMENT_MODE.NONE && currentPMode != PLACEMENT_MODE.ERASER)
+                        {
+                            currentPMode = PLACEMENT_MODE.DELETE;
+                        }
+                        else if (Mouse.GetState().LeftButton == ButtonState.Pressed)
+                        {
+                            currentPMode = PLACEMENT_MODE.ERASER;
+                        }
+                        break;
+                    case Keys.LeftShift:
+                        if (currentPMode != PLACEMENT_MODE.NONE)
+                        {
+                            currentPMode = PLACEMENT_MODE.MULTI_PLACE;
+                        }
+                        break;
+                }
+        }
+
+        int infiplaceCount = 0;
+        Vector2 lastInfiniPlaceSuccess = Vector2.Zero;
+
+        void DoInfiPlace()
+        {
+            UI.Tooltip.ShowTooltip(this, "Painting Object... " + infiplaceCount + " objects placed");
+            var obj = Holding;
+            var pos = Snap();
+            if (lastInfiniPlaceSuccess != pos)
+            {
+                if (!CheckIfInsideObject(pos, obj.Width, obj.Height, out _))
+                {
+                    var ID = LevelData.GetIDByInstance(obj);
+                    var newObj = LevelData.GetInstanceByID(ID, new Rectangle((int)pos.X, (int)pos.Y, 0, 0));
+                    GameObjects.Add(newObj);
+                    infiplaceCount++;
+                    lastInfiniPlaceSuccess = pos;
+                }
+                else
+                    UI.Tooltip.ShowTooltip(this, "Can't Place Object Here...");
+            }
+        }
+
+        void DoResize(GameObject obj)
+        {
+            UI.Tooltip.ShowTooltip(this, "Resizing Objects not implemented!");
+        }
+
+        void DoDrag(GameObject obj)
+        {
+            UI.Tooltip.ShowTooltip(this, "Moving Object... Press DEL to Delete.");
+            if (isObjectHeld)
+            {
+                if (Holding == obj)
+                {
+                    var pos = Snap();
+                    if (!CheckIfInsideObject(pos, obj.Width, obj.Height, out GameObject i))
+                    {
+                        obj.Location = pos;
+                        obj.CorrectObjectPosition();                        
+                    }
+                    else if (i != obj)
+                        UI.Tooltip.ShowTooltip(this, "Can't Move Object Here.");
+                }
+            }
+        }
+
+        void DoDelete(GameObject obj)
+        {
+            if (isObjectHeld)
+                if (obj == Holding)
+                {
+                    GameObjects.Remove(obj);
+                    dropObject();
+                }
+        }
+
+        private void DoEraser()
+        {           
+            var pos = Snap();
+            UI.Tooltip.ShowTooltip(this, "Erasing Objects... " + infiplaceCount + " deleted.");
+            if (CheckIfInsideObject(pos, GRID_SIZE, GRID_SIZE, out GameObject i))
+            {
+                GameObjects.Remove(i);
+                infiplaceCount++;
+            }
+        }
+
+        void RunObjectPlacementMode(GameObject focus)
+        {
+            switch (currentPMode)
+            {
+                case PLACEMENT_MODE.DRAG:
+                    DoDrag(focus);
+                    break;
+                case PLACEMENT_MODE.RESIZE:
+                    DoResize(focus);
+                    break;
+                case PLACEMENT_MODE.DELETE:
+                    DoDelete(focus);
+                    break;
+                case PLACEMENT_MODE.MULTI_PLACE:
+                    DoInfiPlace();
+                    break;
+                case PLACEMENT_MODE.ERASER:
+                    DoEraser();
+                    break;
+            }
+        }        
 
         Point mouseLastPos;
         public override void Update(GameTime gameTime)
@@ -77,30 +235,24 @@ namespace SuperMario.Screens
             Core.GameCamera.Focus = co;
             Core.SafeObjects = GameObjects.ToArray();
             co.Update(gameTime);
+            GetInputs();
+            RunObjectPlacementMode(Holding);
             foreach (var obj in Core.SafeObjects)
             {
-                obj.PhysicsApplied = false;
-                if (isDragging)
+                obj.PhysicsApplied = false;                                
+                if (currentPMode == PLACEMENT_MODE.NONE)
                 {
-                    if (dragging == obj)
-                    {
-                        obj.Location = Snap();
-                        UI.Tooltip.ShowTooltip("Moving Object... Press DEL to Delete.");
-                    }
+                    UI.Tooltip.HideTooltip(this);
                 }
-                else
-                {
-                    UI.Tooltip.HideTooltip();
-                }
-                if (dragging != obj)
+                if (Holding != obj)
                     obj.Update(gameTime);
                 CheckObjectMouseCollision(obj);
             }
             mouseLastPos = Mouse.GetState().Position;
         }
 
-        GameObject dragging;
-        bool isDragging = false;
+        GameObject Holding;
+        bool isObjectHeld = false;
 
         Vector2 Snap()
         {
@@ -124,29 +276,43 @@ namespace SuperMario.Screens
             }
         }
 
+        Rectangle getVisibleHitbox(GameObject obj)
+        {
+            return new Rectangle(obj.Location.ToPoint(), obj.Source.Size);
+        }
+
         void CheckObjectMouseCollision(GameObject obj)
         {
             var mouse = Mouse.GetState();
             var mouseRect = new Rectangle(Core.MousePosition.X, Core.MousePosition.Y, 1, 1);
-            if (mouseRect.Intersects(obj.Hitbox))
-                if (mouse.LeftButton == ButtonState.Pressed)
-                {
-                    startDrag(obj);
-                }
-            if (isDragging)
-                if (mouse.LeftButton == ButtonState.Released)
-                {
-                    isDragging = false;
-                    dragging = null;
-                }
+            if (currentPMode == PLACEMENT_MODE.NONE)
+                if (mouseRect.Intersects(getVisibleHitbox(obj)))
+                    if (mouse.LeftButton == ButtonState.Pressed)
+                    {
+                        startDrag(obj);
+                    }
+            if (mouse.LeftButton == ButtonState.Released)
+            {
+                dropObject();
+            }
+        }
+
+        void dropObject()
+        {
+            isObjectHeld = false;
+            Holding = null;
+            currentPMode = PLACEMENT_MODE.NONE;
+            lastInfiniPlaceSuccess = Vector2.Zero;
+            infiplaceCount = 0;
         }
 
         void startDrag(GameObject obj)
         {
-            if (!isDragging)
+            if (!isObjectHeld)
             {
-                dragging = obj;
-                isDragging = true;
+                Holding = obj;
+                isObjectHeld = true;
+                currentPMode = PLACEMENT_MODE.DRAG;
             }
         }
 
@@ -154,7 +320,6 @@ namespace SuperMario.Screens
         {            
             foreach (var obj in Core.SafeObjects)
                 obj.Draw(batch);
-            batch.Draw(Core.BaseTexture, new Rectangle(Core.MousePosition.X, Core.MousePosition.Y, 25, 25), Color.Orange * .5f);
             DrawGrid(batch);
         }
     }
