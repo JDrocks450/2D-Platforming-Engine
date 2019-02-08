@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace SuperMario.UI
 {
-    public abstract class UIComponent
+    public interface UIComponent
     {
         int X
         {
@@ -29,8 +30,8 @@ namespace SuperMario.UI
             get; set;
         }
 
-        public abstract void Update();
+        void Update(GameTime gt);
 
-        public abstract void Draw(SpriteBatch sb);
+        void Draw(SpriteBatch sb);
     }
 }

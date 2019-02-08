@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SuperMario.Enemies
 {
-    public class Goomba : Enemy
+    public class Goomba : Character, Character.Enemy
     {
         const float ACCEL = .1f;
         const int WIDTH = 50, HEIGHT = 50;        
@@ -17,19 +17,19 @@ namespace SuperMario.Enemies
         internal override float WalkingSpeed => .75f;
         public override Point PreferredSize => new Point(WIDTH, HEIGHT);
         public override Point IconSize => new Point(100, 50);
+        internal override float StompBoost => 20;
 
-        public enum Direction
+        public enum Direction : int
         {
             Left,
             Right
         }
         Direction walkingDir;
-        private bool Disabled;
 
         public Goomba(Point location, Direction WalkDirection = Direction.Left) : base(new Rectangle(location, new Point(WIDTH, HEIGHT)))
         {
             walkingDir = WalkDirection;
-            PhysicsApplied = true;
+            LimitedCollision = true;
             DefaultSource = false;
             OnCollision += Goomba_OnCollision;
         }
@@ -41,17 +41,24 @@ namespace SuperMario.Enemies
 
         public override void CollidedInto(Collidable.CollisionType type, Collidable col, GameObject other)
         {
-            if (other is Character)
+            if (other is Player)
             {
-                var character = other as Character;
-                if (type == Collidable.CollisionType.FLOOR)
+                var character = other as Player;
+                if (type != Collidable.CollisionType.CEILING && (character.Y + character.Source.Height) <= Hitbox.Center.Y)                    
                 {
-                    character.Jump(8);
-                    Die();
+                    character.Jump(StompBoost);
+                    Harm();
                 }
                 else
                     character.Harm();
             }
+            else if (type == Collidable.CollisionType.WALL)
+                walkingDir = (Direction)(walkingDir != 0 ? 0 : 1);
+        }
+
+        public override void Harm()
+        {
+            Die();
         }
 
         public override void Load()

@@ -36,7 +36,7 @@ namespace SuperMario
             get; set;
         }
 
-        public bool HoldingCamera = false;
+        public bool HoldingCamera = false;        
 
         /// <summary>
         /// reduce camera movement by using one character height for Y calculations.

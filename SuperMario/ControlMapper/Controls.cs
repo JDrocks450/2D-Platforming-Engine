@@ -16,6 +16,7 @@ namespace SuperMario.ControlMapper
         {
             DEBUG_PLAYER_CREATE = 'P',
             DEBUG_OBJECT_CREATE = 'O',
+            DEBUG_GOOMBA_CREATE = 'G'
         }
 
         XDocument controlFile;

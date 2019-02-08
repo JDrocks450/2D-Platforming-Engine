@@ -10,6 +10,11 @@ namespace SuperMario
 {
     public class Character : PrefabObjects.Prefab
     {
+        public interface Enemy
+        {
+
+        }
+
         internal virtual float JumpForce
         {
             get => 15;
@@ -29,6 +34,10 @@ namespace SuperMario
         internal virtual bool RunningAllowed
         {
             get => false;
+        }
+        internal virtual float StompBoost
+        {
+            get => 8;
         }
         internal virtual bool JumpingAllowed
         {
@@ -116,7 +125,10 @@ namespace SuperMario
                     }
             }
             else
+            {
+                Acceleration.X = 0;
                 currentMovement = MovementMode.AIR;
+            }
             switch (currentMovement)
             {
                 case MovementMode.STILL:

@@ -45,17 +45,23 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Camera.cs" />
-    <Compile Include="Collidable.cs" />
+    <Compile Include="Enemies\Collidable.cs" />
     <Compile Include="ControlMapper\Controls.cs" />
     <Compile Include="Core.cs" />
     <Compile Include="Enemies\Character.cs" />
-    <Compile Include="Enemies\Enemy.cs" />
+    <Compile Include="Enemies\Fireball.cs" />
     <Compile Include="Enemies\Goomba.cs" />
     <Compile Include="PrefabObjects\GameObject.cs" />
     <Compile Include="Enemies\Player.cs" />
     <Compile Include="Items\FireFlower.cs" />
     <Compile Include="Items\Item.cs" />
     <Compile Include="Items\Mushroom.cs" />
+    <Compile Include="PrefabObjects\WarpPipe.cs" />
+    <Compile Include="Properties\Resource1.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resource1.resx</DependentUpon>
+    </Compile>
     <Compile Include="UI\ObjectSpawner.cs" />
     <Compile Include="Screens\Level Creator.cs" />
     <Compile Include="Levels\LevelData.cs" />
@@ -89,6 +95,10 @@
   <ItemGroup>
     <EmbeddedResource Include="Icon.ico" />
     <EmbeddedResource Include="Icon.bmp" />
+    <EmbeddedResource Include="Properties\Resource1.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resource1.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <MonoGameContentReference Include="Content\Content.mgcb" />
@@ -137,6 +147,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="app.manifest" />
+    <None Include="Resources\font.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

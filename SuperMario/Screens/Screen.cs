@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using SuperMario.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,15 @@ namespace SuperMario.Screens
 {
     public abstract class Screen
     {
+        public virtual SpriteSortMode SortMode => SpriteSortMode.Deferred;
+
+        public virtual Color Background => Color.Black;
+
+        public bool Paused
+        {
+            get; set;
+        }
+
         public enum SCREENS
         {
             LEVEL_START,

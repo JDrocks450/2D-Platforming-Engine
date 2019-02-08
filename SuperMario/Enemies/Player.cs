@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using SuperMario.Items;
+using SuperMario.PrefabObjects;
 
 namespace SuperMario
 {
@@ -18,7 +19,7 @@ namespace SuperMario
         const float VELOCITY_HOLD_X = 7;
         const float STOP_ACCEL = .5f;
         const float ACCEL = .3f;
-        const float JUMP_INIT_VELOCITY_Y = 11.5f;
+        const float JUMP_INIT_VELOCITY_Y = 10f;
         const float JUMP_BOOST_TIME = .3f;
         const float INVULNERABILITY_TIME = 3;
 
@@ -39,7 +40,7 @@ namespace SuperMario
         }
         internal PowerupState PUState;
 
-        public static bool PLAYER_MOVED = false;
+        public static bool PLAYER_MOVED = false;        
 
         public override string TextureName => "spritesheet";
         public override string IconName => "Icons/mario";
@@ -79,6 +80,7 @@ namespace SuperMario
             DEBUG_Player = false;
             DefaultTextureClip = false;
             ChangePowerupState(PowerupState.SM_REG);
+            ZIndex = 0;
         }
 
         public override void Load()
@@ -102,6 +104,11 @@ namespace SuperMario
                     ChangePowerupState(PowerupState.SM_REG);
                     break;
             }
+        }
+
+        public void ThrowFireball()
+        {
+            Core.GameObjects.Add(new Enemies.Fireball(new Point((int)X + Source.Width + 5, (int)Y)));
         }
 
         public void ChangePowerupState(PowerupState newState)
@@ -215,12 +222,16 @@ namespace SuperMario
 
         bool overrideAllowJump;
         TimeSpan jumpTimer;
+        bool fireball_waiting = false;
 
         public void GetInputs(KeyboardState keyboard, GameTime gameTime)
         {            
             canRun = false;
             var keyPresses = Core.ControlHandler.GetKeyControl(keyboard);
+            var fireballCheck = false;
             foreach (var k in keyPresses)
+            {
+                fireballCheck = (k == "attack");
                 switch (k)
                 {
                     case "left":
@@ -232,8 +243,8 @@ namespace SuperMario
                     case "jump":
                         if (jumpTimer.TotalSeconds < JUMP_BOOST_TIME && Velocity.Y <= 0)
                         {
-                            if (overrideAllowJump == false && JumpingAllowed)                            
-                                overrideAllowJump = true;                                                            
+                            if (overrideAllowJump == false && JumpingAllowed)
+                                overrideAllowJump = true;
                             Jump();
                         }
                         else
@@ -245,7 +256,13 @@ namespace SuperMario
                     case "sprint":
                         canRun = true;
                         break;
+                    case "attack":
+                        if (!fireball_waiting)
+                            ThrowFireball();
+                        break;
                 }
+            }
+            fireball_waiting = fireballCheck;
             if (overrideAllowJump)
                 jumpTimer += gameTime.ElapsedGameTime;
             if (keyPresses.Count == 0)

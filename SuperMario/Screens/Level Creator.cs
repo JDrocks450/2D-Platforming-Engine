@@ -14,7 +14,7 @@ namespace SuperMario.Screens
     public class LevelCreator : Screen
     {
         class CameraObject : GameObject
-        {
+        {            
             public CameraObject() : base(null, new Rectangle(0, 0, 1, 1))
             {
 
@@ -41,6 +41,7 @@ namespace SuperMario.Screens
         }
 
         const int GRID_SIZE = 50;
+        public override Color Background => Color.SkyBlue;        
 
         enum PLACEMENT_MODE
         {
@@ -80,7 +81,7 @@ namespace SuperMario.Screens
         {
             GameObjects.AddRange(Core.levelData.LoadedObjects);
             foreach (var obj in GameObjects)
-                obj.CorrectObjectPosition();
+                CorrectObjectPosition(obj);
         }        
 
         bool CheckIfInsideObject(GameObject obj, out GameObject intersect)
@@ -173,12 +174,12 @@ namespace SuperMario.Screens
                 if (Holding == obj)
                 {
                     var pos = Snap();
-                    if (!CheckIfInsideObject(pos, obj.Width, obj.Height, out GameObject i))
+                    if (!CheckIfInsideObject(pos, obj.Width, obj.Height, out GameObject i, obj))
                     {
                         obj.Location = pos;
-                        obj.CorrectObjectPosition();                        
+                        CorrectObjectPosition(obj);                        
                     }
-                    else if (i != obj)
+                    else
                         UI.Tooltip.ShowTooltip(this, "Can't Move Object Here.");
                 }
             }
@@ -239,7 +240,7 @@ namespace SuperMario.Screens
             RunObjectPlacementMode(Holding);
             foreach (var obj in Core.SafeObjects)
             {
-                obj.PhysicsApplied = false;                                
+                obj.LimitedCollision = false;                                
                 if (currentPMode == PLACEMENT_MODE.NONE)
                 {
                     UI.Tooltip.HideTooltip(this);
@@ -273,6 +274,18 @@ namespace SuperMario.Screens
                 }
                 sb.Draw(Core.BaseTexture, 
                     new Rectangle(GameCamera.Screen.X < 0 ? 0 : GameCamera.Screen.X, c, GameCamera.Screen.Width, 2), Color.White);
+            }
+        }
+
+        public void CorrectObjectPosition(GameObject obj)
+        {
+            if (obj.X < 0)
+                obj.X = 0;
+            if (obj.Y < 0)
+                obj.Y = 0;
+            if (obj.Y > Core.WORLD_BOTTOM)
+            {
+                obj.Y = Core.WORLD_BOTTOM;
             }
         }
 

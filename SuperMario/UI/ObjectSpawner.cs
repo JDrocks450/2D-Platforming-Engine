@@ -19,19 +19,19 @@ namespace SuperMario
         public delegate void ObjectSpawnRequestHandler(byte id);
         public event ObjectSpawnRequestHandler OnObjectSpawnRequested;
 
-        int X
-        {
-            get;set;
-        }
-        int Y
+        public int X
         {
             get; set;
         }
-        int Width
+        public int Y
         {
             get; set;
         }
-        int Height
+        public int Width
+        {
+            get; set;
+        }
+        public int Height
         {
             get; set;
         }
@@ -76,7 +76,7 @@ namespace SuperMario
 
         bool Populated = false;
         int lastSCRHeight = 0;
-        public override void Update()
+        public void Update(GameTime gameTime)
         {            
             Width = Core.GameCamera.Screen.Width;
             if (lastSCRHeight != Core.GameCamera.Screen.Height)
@@ -107,7 +107,7 @@ namespace SuperMario
 
         Rectangle[] itemBoxes;
 
-        public override void Draw(SpriteBatch sb)
+        public void Draw(SpriteBatch sb)
         {
             sb.Draw(Core.BaseTexture, new Rectangle(X, Y, Width, Height), Color.DarkGray);
             int Xlast = 0, Ylast = 0;

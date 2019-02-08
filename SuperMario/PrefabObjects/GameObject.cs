@@ -119,6 +119,11 @@ namespace SuperMario
             }
         }
 
+        public float Graphics_Rotation
+        {
+            get; set;
+        }
+
         /// <summary>
         /// The amount location changes per frame
         /// </summary>
@@ -182,13 +187,33 @@ namespace SuperMario
         internal TimeSpan animationTimer;
 
         internal List<Collidable> Collision;
-        internal bool PhysicsApplied = true;
+        internal bool LimitedCollision = true;
         internal bool StandingCollisionOnly = false;
         internal bool DisableEnemyHitDetection = false;
         public bool gravityAirStateChange;
+
+        int _inAirFrameChangedAmount = 0;
         public bool InAir
         {
+            get => _inAir;
+            internal set
+            {
+                if (value != _inAir)
+                {
+                    _inAir = value;
+                    _inAirFrameChangedAmount++;
+                }
+            }
+        }
+        public GameObject StandingOn
+        {
             get; internal set;
+        }
+        internal GameObject GetObjectRestingOn()
+        {
+            if (!InAir)
+                return StandingOn;
+            return null;
         }
 
         private float _x;
@@ -196,6 +221,7 @@ namespace SuperMario
         private int _w;
         private int _h;
         private Vector2 _camFol;
+        private bool _inAir;
 
         public GameObject(Texture2D texture, Rectangle hitbox)
         {
@@ -224,6 +250,8 @@ namespace SuperMario
         {
             get => new char[0];
         }
+        public float ZIndex { get; set; } = .9f;
+        public bool GravityApplied { get; set; } = true;
 
         private void GameObject_OnCollision(Collidable.CollisionType type, Collidable collision, GameObject other)
         {
@@ -233,6 +261,12 @@ namespace SuperMario
         public virtual void CollidedInto(Collidable.CollisionType type, Collidable col, GameObject other)
         {
 
+        }
+
+        public void DumpDebugInfo()
+        {
+            System.Diagnostics.Debug.WriteLine(Core.Stats.frame + " || InAir changed: " + _inAirFrameChangedAmount);
+            _inAirFrameChangedAmount = 0;
         }
 
         public static GameObject CreateDebugObject()
@@ -255,12 +289,14 @@ namespace SuperMario
 
         bool VerifyGravity()
         {
-            if (!PhysicsApplied)
+            if (!LimitedCollision)
                 return false;
-            gravityAirStateChange = false;
+            if (!GravityApplied)
+                return false;
             if (Y >= Core.WORLD_BOTTOM - Height)
             {
                 Y = Core.WORLD_BOTTOM - Height;
+                Remove();
                 return false;
             }
             return true;
@@ -274,27 +310,12 @@ namespace SuperMario
         public void PHYSICS_INVOKECOLLISION(Collidable.CollisionType type, Collidable collidable, GameObject other)
         {
             OnCollision?.Invoke(type, collidable, other);
-        }
-
-        public void CorrectObjectPosition()
-        {
-            if (X < 0)
-                X = 0;
-            if (Y < 0)
-                Y = 0;
-            if (Y > Core.WORLD_BOTTOM)
-                Y = Core.WORLD_BOTTOM;
-        }
+        }        
 
         public virtual void Update(GameTime gameTime)
         {
             if (VerifyGravity())
                 Acceleration.Y = GRAVITY;
-            else
-            {
-                Acceleration.Y = 0;
-                Velocity.Y = 0;
-            }
             var accel = Acceleration;
             if (Acceleration.X > MAX_ACCEL_XY)
                 accel.X = MAX_ACCEL_XY;
@@ -306,13 +327,15 @@ namespace SuperMario
                 if (StandingCollisionOnly)
                 {
                     if (col.Type == Collidable.CollisionType.CEILING)
+                    {
                         col.UpdateCollsion();
+                    }
                 }
-                else                
+                else
                     col.UpdateCollsion();                
             if (DefaultSource)
             {
-                Source = new Rectangle(0, 0, Width, Height);
+                Source = new Rectangle(0, 0, Texture.Width, Texture.Height);
             }
         }
 
@@ -321,17 +344,20 @@ namespace SuperMario
             switch (IsTextureRepeating)
             {
                 case false:
-                    sb.Draw(Texture, TextureClip, Source, TextureColor, 0f, Vector2.Zero, effects, 0);
+                    sb.Draw(Texture, 
+                        new Rectangle(TextureClip.Location + (Graphics_Rotation > 0 ? (TextureClip.Size / new Point(2)) : new Point(0)), TextureClip.Size), 
+                        Source, TextureColor, Graphics_Rotation, Graphics_Rotation > 0 ? 
+                        new Vector2(Source.Width/2, Source.Height/2) : Vector2.Zero, effects, ZIndex);
                     break;
                 case true:
                     Point repeatAmount = Hitbox.Size / RepeatTextureSize;
                     sb.Draw(Texture, Location, new Rectangle(0, 0, RepeatTextureSize.X * repeatAmount.X,
-                        RepeatTextureSize.Y * repeatAmount.Y), TextureColor);
+                        RepeatTextureSize.Y * repeatAmount.Y), TextureColor, Graphics_Rotation, Vector2.Zero, 1f, effects, ZIndex);
                     break;
             }
             if (Core.DEBUG)
             {
-                sb.Draw(Core.BaseTexture, Hitbox, Color.Orange * .5f);
+                sb.Draw(Core.BaseTexture, Hitbox, null, Color.Orange * .5f, 0, Vector2.Zero, SpriteEffects.None, 1);
                 foreach (var col in Collision)
                     col.DrawDEBUGCollision(sb);
             }

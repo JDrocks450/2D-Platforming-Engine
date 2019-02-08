@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SuperMario.Enemies;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,13 +11,16 @@ namespace SuperMario
 {
     public class Collidable
     {
-        const int WALL_BOXSIZE1 = 5;
+        const int WALL_BOXSIZE1 = 2;
         const int WALL_BOXSIZE2 = 10;
         public const int WALL_OFFSET_Y = 5;
         const int WALL_DISTANCE = 0;
 
+        const int FLOOR_OFFSET_X = 2;
         const int FLOOR_BOXSIZE1 = 15;
         const int FLOOR_BOXSIZE2 = 10;
+
+        public static Dictionary<GameObject, int> _updatedObjs;
 
         public GameObject Following
         {
@@ -46,8 +50,9 @@ namespace SuperMario
 
         public static List<Collidable> CreateCollision(GameObject obj)
         {
+            if (_updatedObjs is null) _updatedObjs = new Dictionary<GameObject, int>();
             List<Collidable> collidables = new List<Collidable>();
-            for(int i = 0; i <= 3; i++)
+            for (int i = 0; i <= 3; i++)
             {
                 switch (i)
                 {
@@ -62,7 +67,7 @@ namespace SuperMario
                             obj.Height, obj, CollisionType.WALL, WallDirection.RIGHT));
                         break;
                     case 3: //ceiling
-                        collidables.Add(new Collidable(new Vector2(obj.Location.X, obj.Location.Y+obj.Height),
+                        collidables.Add(new Collidable(new Vector2(obj.Location.X, obj.Location.Y + obj.Height),
                             obj.Width, obj, CollisionType.CEILING));
                         break;
                 }
@@ -74,8 +79,8 @@ namespace SuperMario
         }
 
         public void DeactivateCollisionBox(params int[] indices)
-        {            
-            foreach(var index in indices)
+        {
+            foreach (var index in indices)
                 activatedBoxes[index] = false;
         }
 
@@ -103,18 +108,18 @@ namespace SuperMario
                     Size = obj.Height;
                     break;
                 case CollisionType.FLOOR:
-                    Location = obj.Location;
-                    Size = obj.Width;
+                    Location = obj.Location + new Vector2(FLOOR_OFFSET_X,0);
+                    Size = obj.Width - 2*FLOOR_OFFSET_X;
                     break;
                 case CollisionType.CEILING:
-                    Location = new Vector2(obj.Location.X, obj.Location.Y + obj.Height);
-                    Size = obj.Width;
+                    Location = new Vector2(obj.Location.X, obj.Location.Y + obj.Height) + new Vector2(FLOOR_OFFSET_X, 0);
+                    Size = obj.Width - 2 * FLOOR_OFFSET_X;
                     break;
             }
         }
 
-        public Collidable(Vector2 Position, int Length, GameObject follow, CollisionType type, WallDirection direction = WallDirection.LEFT)            
-        {            
+        public Collidable(Vector2 Position, int Length, GameObject follow, CollisionType type, WallDirection direction = WallDirection.LEFT)
+        {
             Location = Position;
             Size = Length;
             Type = type;
@@ -138,7 +143,16 @@ namespace SuperMario
             Location += change;
         }
 
-        public void Setup()
+        public static void Final()
+        {
+            foreach (var obj in Core.SafeObjects)
+            {
+                obj.gravityAirStateChange = false;                
+            }
+            _updatedObjs.Clear();
+        }
+
+        public bool Setup()
         {
             var Location = this.Location.ToPoint();
             switch (Type)
@@ -158,48 +172,57 @@ namespace SuperMario
                     break;
             }
             int i = 0;
+            var success = true;
             foreach (var b in activatedBoxes)
             {
                 if (b == false)
                     collsionboxes[i] = new Rectangle(-1000, 0, 0, 0);
                 i++;
             }
-
+            return success;
         }
 
-        bool DoFloorCollision(List<Rectangle> boxes, Collidable r, GameObject obj, bool isobjGrounded, out bool success, out bool objGrounded, bool ignoreBoxesCheck = false)
+        bool DoFloorCollision(List<Rectangle> boxes, Collidable r, GameObject obj, out bool success, bool ignoreBoxesCheck = false)
         {
-            success = false;
-            objGrounded = isobjGrounded;
+            success = false;            
             if (r.Type != CollisionType.CEILING)
                 return false;
+            obj.InAir = true;
             if (obj.Velocity.Y >= 0)
             {
                 if (!ignoreBoxesCheck)
-                    if (obj is Player && obj.InAir)
+                    if (obj is Character && obj.InAir)
                         if (boxes.Contains(r.collsionboxes[0]) && boxes.Count() == 1)
                             return false;
                 obj.Y = Location.Y - obj.Height;
                 obj.Velocity.Y = 0;
-                objGrounded = true;
+                obj.InAir = false;
+                obj.gravityAirStateChange = true;
                 success = true;
             }
             return true;
+        }
+
+        public static IEnumerable<T> Extract<T>(IEnumerable<T> input, out IEnumerable<T> output)
+        {
+            output = input;
+            return input;
         }
 
         public void UpdateCollsion()
         {
             Setup();
             foreach (var obj in Core.SafeObjects)
-            {               
-                var objGrounded = false;
-                foreach (var colBox in collsionboxes)
+            {
+                if (obj != Following && obj.LimitedCollision)
                 {
-                    if (obj != Following && obj.PhysicsApplied)
+                    if (!obj.gravityAirStateChange)
+                        obj.InAir = true;
+                    foreach (var colBox in collsionboxes)
                     {
-                        if ((obj.DisableEnemyHitDetection || Following.DisableEnemyHitDetection) && (obj is Enemies.Enemy || Following is Enemies.Enemy))
+                        if ((obj.DisableEnemyHitDetection || Following.DisableEnemyHitDetection) && (obj is Character.Enemy || Following is Character.Enemy))
                             break;
-                        var result = obj.Collision.Where(x => x.collsionboxes.Where(y => y.Intersects(colBox)).Any());                        
+                        var result = obj.Collision.Where(x => x.collsionboxes.Where(y => y.Intersects(colBox)).Any());
                         if (result.Any())
                         {
                             var success = false;
@@ -232,7 +255,9 @@ namespace SuperMario
                                         }
                                         break;
                                     case CollisionType.FLOOR:
-                                        if (!DoFloorCollision(boxes, r, obj, objGrounded, out success, out objGrounded))
+                                        if (r.Type != CollisionType.CEILING)
+                                            continue;
+                                        if (!DoFloorCollision(boxes, r, obj, out success))
                                             continue;
                                         break;
                                     case CollisionType.CEILING:
@@ -247,20 +272,16 @@ namespace SuperMario
                                         break;
                                 }
                                 if (success)
+                                {
+                                    if (Type == CollisionType.FLOOR)
+                                        obj.StandingOn = Following;
                                     Following.PHYSICS_INVOKECOLLISION(Type, this, obj);
-                            }                            
+                                }
+                            }
                             break;
-                        }                        
+                        }
                     }
-                }
-                if (!obj.gravityAirStateChange)
-                {
-                    if (!objGrounded)
-                        obj.InAir = true;
-                    obj.gravityAirStateChange = true;
-                }
-                if (objGrounded)
-                    obj.InAir = false;
+                }             
             }
         }
 
@@ -271,22 +292,22 @@ namespace SuperMario
             switch (Type)
             {
                 case CollisionType.FLOOR:
-                    sb.Draw(Core.BaseTexture, new Rectangle(Location.X, Location.Y-1, Size, 2), color);
+                    sb.Draw(Core.BaseTexture, new Rectangle(Location.X, Location.Y-1, Size, 2), null, color, 0, Vector2.Zero, SpriteEffects.None, 1);
                     break;
                 case CollisionType.WALL: //color for wall
                     color = Color.Green;
-                    sb.Draw(Core.BaseTexture, new Rectangle(Location.X-1, Location.Y, 2, Size), color);
+                    sb.Draw(Core.BaseTexture, new Rectangle(Location.X-1, Location.Y, 2, Size), null, color, 0, Vector2.Zero, SpriteEffects.None, 1);
                     break;
                 case CollisionType.CEILING: //color for ceiling
                     color = Color.Red;
-                    sb.Draw(Core.BaseTexture, new Rectangle(Location.X, Location.Y - 1, Size, 2), color);
+                    sb.Draw(Core.BaseTexture, new Rectangle(Location.X, Location.Y - 1, Size, 2), null, color, 0, Vector2.Zero, SpriteEffects.None, 1);
                     break;
             }
             if (Following.DisableEnemyHitDetection)
                 color = Color.Aqua;
             color *= .5f; //make color semi-transparent
             foreach (var colBox in collsionboxes)
-                sb.Draw(Core.BaseTexture, colBox, color);            
+                sb.Draw(Core.BaseTexture, colBox, null, color, 0, Vector2.Zero, SpriteEffects.None, 1);            
         }
     }
 }

@@ -17,9 +17,24 @@ namespace SuperMario.Screens
 {
     public class Gameplay : Screen
     {
+        public override Color Background => Color.SkyBlue;
+
+        public override SpriteSortMode SortMode => SpriteSortMode.FrontToBack;
+
         public Gameplay() : base(SCREENS.GAME)
         {
 
+        }
+
+        bool showLevStart = true;
+
+        void ShowLevelStart()
+        {
+            var s = new Level_Start(this, "world 1 stage 1", 5);
+            s.Load(Core.Manager);
+            Core.UIElements.Add(s);
+            Paused = true;
+            showLevStart = false;
         }
 
         public override void Load(ContentManager content)
@@ -38,18 +53,25 @@ namespace SuperMario.Screens
         }
 
         public override void Update(GameTime gameTime)
-        {
+        {            
             GameCamera.Focus = Core.ControlledPlayer;
             Core.SafeObjects = GameObjects.ToArray();
+            if (Paused)
+                return;
             var result = Core.ControlHandler.MenuKeys(Keyboard.GetState());
             if (result.Contains(Controls.MENUKeys.DEBUG_PLAYER_CREATE))
                 GameObjects.Add(Player.DebugPlayer());
             if (result.Contains(Controls.MENUKeys.DEBUG_OBJECT_CREATE))
                 GameObjects.Add(GameObject.CreateDebugObject());
+            if (result.Contains(Controls.MENUKeys.DEBUG_GOOMBA_CREATE))
+                GameObjects.Add(new Goomba(new Point((int)(Core.ControlledPlayer?.Location ?? new Vector2()).X, 0), Goomba.Direction.Right));
             foreach (var obj in Core.SafeObjects)
             {
                 obj.Update(gameTime);
-            }
+            }            
+            Collidable.Final();
+            if (showLevStart)
+                ShowLevelStart();
         }
 
         public override void Draw(SpriteBatch sb)

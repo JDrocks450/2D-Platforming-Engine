@@ -23,6 +23,7 @@ namespace SuperMario.LevelLoader
             GROUND,
             BUSH,
             GOOMBA,
+            WARPPIPE,
         }
 
         enum DATA_LAYOUT
@@ -186,6 +187,9 @@ namespace SuperMario.LevelLoader
                     break;
                 case OBJ_TABLE.QUES_BLOCK:
                     obj = new PrefabObjects.QuestionBlock(box, PrefabObjects.QuestionBlock.SpawnObjectLogic.Inferred, null);
+                    break;
+                case OBJ_TABLE.WARPPIPE:
+                    obj = new PrefabObjects.WarpPipe(StartPos.Location);
                     break;
             }
             return obj;

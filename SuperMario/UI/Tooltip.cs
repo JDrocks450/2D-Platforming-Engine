@@ -10,28 +10,54 @@ using System.Threading.Tasks;
 
 namespace SuperMario.UI
 {
-    public class Tooltip
+    public abstract class Tooltip : UIComponent
     {
         const int MARGIN = 5;
-        static SpriteFont FONT;
+        public static SpriteFont FONT;
         static int w, h;
-        static Texture2D t;
-        public static void Load(ContentManager m, int SCRWIDTH, int SCRHEIGHT, Texture2D texture)
+
+        public int X
         {
-            FONT = m.Load<SpriteFont>("Fonts/Font");
-            w = SCRWIDTH;
-            h = SCRHEIGHT;
-            t = texture;
+            get; set;
+        }
+        public int Y
+        {
+            get; set;
+        }
+        public int Width
+        {
+            get => w; set => w = value;
+        }
+        public int Height
+        {
+            get => h; set => h = value;
         }
 
-        public static bool Showing = true;
-        public static string ShowingText = "EMPTY";
+        public static bool Showing
+        {
+            get; set;
+        } = false;
+
+        public static string ShowingText
+        {
+            get; set;
+        } = "EMPTY";
+
         public static object currentSender
         {
             get;
             private set;
         }
 
+        static Texture2D t;
+        public static void Load(ContentManager m, int SCRWIDTH, int SCRHEIGHT, Texture2D texture)
+        {
+            FONT = m.Load<SpriteFont>("Fonts/Tooltip");
+            w = SCRWIDTH;
+            h = SCRHEIGHT;
+            t = texture;
+        }
+        
         public static void ShowTooltip(object sender, string TEXT)
         {
             ShowingText = TEXT;
@@ -45,7 +71,10 @@ namespace SuperMario.UI
                 Showing = false;
         }
 
-        public static void Draw(SpriteBatch sb)
+        public abstract void Update(GameTime gt);
+        public abstract void Draw(SpriteBatch sb);
+
+        public static void sDraw(SpriteBatch sb)
         {
             if (!Showing)
                 return;

@@ -14,7 +14,7 @@ namespace SuperMario.PrefabObjects
 
         public Block(Rectangle Box) : base(Box)
         {
-            PhysicsApplied = false;
+            LimitedCollision = false;
             OnCollision += Block_OnCollision;
         }
 

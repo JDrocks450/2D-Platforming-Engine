@@ -31,6 +31,7 @@ namespace SuperMario.Items
             this.Location = Location;
             this.Velocity = Velocity;
             Acceleration.X = 0;
+            ZIndex = 0;
             Core.GameObjects.Add(this);
         }
 

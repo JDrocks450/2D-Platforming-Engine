@@ -14,6 +14,11 @@ using System.Xml.Linq;
 
 namespace SuperMario
 {
+    public struct Statistics
+    {
+        public int frame;
+    }
+
     /// <summary>
     /// This is the main type for your game.
     /// </summary>
@@ -26,7 +31,7 @@ namespace SuperMario
 
         public static LevelLoader.LevelData levelData;
 
-        public static int WORLD_BOTTOM = 800;
+        public static int WORLD_BOTTOM = 1200;
 
         public static bool DEBUG = false;
         public static Texture2D BaseTexture;
@@ -39,21 +44,20 @@ namespace SuperMario
 
         public static bool RESTART_FLAG = false;
 
-        public Screen CurrentScreen
+        public static Statistics Stats = new Statistics();
+
+        public static Screen CurrentScreen
         {
-            get => _curScreen;
-            set
-            {
-                _curScreen = value;
-                typeofCurrentScreen = _curScreen.UnderlyingType;
-            }
+            get;
+            set;
         }
-        public static Screen.SCREENS typeofCurrentScreen;
 
         public static Player ControlledPlayer
         {
             get => (Player)GameObjects.Find(x => x is Player);
         }
+
+        public static SpriteFont Font;
 
         public static Point MousePosition;
 
@@ -69,7 +73,6 @@ namespace SuperMario
         /// An array of objects that should only ever be read from.
         /// </summary>
         public static GameObject[] SafeObjects;
-        private Screen _curScreen;
 
         public static bool MouseVisible = false;
 
@@ -96,7 +99,7 @@ namespace SuperMario
             BaseTexture = new Texture2D(GraphicsDevice, 1, 1);
             BaseTexture.SetData(new Color[] { Color.White });
             GameCamera = new Camera();
-            CurrentScreen = Screen.CreateScreen(Screen.SCREENS.CREATOR);
+            CurrentScreen = Screen.CreateScreen(Screen.SCREENS.GAME);
             base.Initialize();
         }
 
@@ -109,6 +112,7 @@ namespace SuperMario
             spriteBatch = new SpriteBatch(GraphicsDevice);
             ControlHandler = new Controls(Path.Combine(Dir, Controls.XMLNAME));
             PrefabObjects.Prefab.PrefabWarmup();
+            Font = Content.Load<SpriteFont>("Fonts/Font");
             UI.Tooltip.Load(Content, SCRWIDTH, SCRHEIGHT, Core.BaseTexture);
             levelData = LevelLoader.LevelData.LoadFile(LevelLoader.LevelData.defaultURI);
             if (CurrentScreen is LevelCreator)
@@ -141,14 +145,13 @@ namespace SuperMario
                 Exit();
 
             MousePosition = GameCamera.Screen.Location + Mouse.GetState().Position;
-            UISafeElements.Clear();
-            UISafeElements.AddRange(UIElements);
+            UISafeElements = UIElements.ToList();
             CurrentScreen.Update(gameTime);
             IsMouseVisible = MouseVisible;
-            if (RESTART_FLAG)                            
+            if (RESTART_FLAG)
                 Exit();
             foreach (var uielement in UISafeElements)
-                uielement.Update();
+                uielement.Update(gameTime);
             base.Update(gameTime);
         }
 
@@ -158,16 +161,18 @@ namespace SuperMario
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.SkyBlue);
-            spriteBatch.Begin(SpriteSortMode.Deferred, null, SamplerState.LinearWrap, null, null, null, GameCamera.Transform(GraphicsDevice)); //Repeating texture objects drawn here
-            CurrentScreen.Draw(spriteBatch);            
+            GraphicsDevice.Clear(CurrentScreen.Background);
+            spriteBatch.Begin(CurrentScreen.SortMode, null, SamplerState.LinearWrap, null, null, null, GameCamera.Transform(GraphicsDevice)); //Repeating texture objects drawn here
+            if (!(CurrentScreen is UI.UIComponent))
+                CurrentScreen.Draw(spriteBatch);            
             spriteBatch.End();
             spriteBatch.Begin();
             foreach (var element in UISafeElements)
                 element.Draw(spriteBatch);
-            UI.Tooltip.Draw(spriteBatch);
+            UI.Tooltip.sDraw(spriteBatch);
             spriteBatch.End();
             base.Draw(gameTime);
+            Stats.frame++;
         }        
     }
 }
