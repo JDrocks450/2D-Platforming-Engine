@@ -36,10 +36,10 @@ namespace SuperMario.ControlMapper
             }
         }
 
-        public List<string> GetKeyControl(KeyboardState state)
+        public List<string> GetKeyControl()
         {
             var keyResult = new List<string>();
-            foreach(var key in state.GetPressedKeys())
+            foreach(var key in Keyboard.GetState().GetPressedKeys())
             {
                 if (KeyBinds.Keys.Contains((char)key))                
                     keyResult.Add(KeyBinds[(char)key]);                

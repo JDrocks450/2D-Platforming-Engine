@@ -56,5 +56,7 @@ namespace SuperMario.Screens
         public abstract void Update(GameTime gameTime);
 
         public abstract void Draw(SpriteBatch batch);
+
+        public abstract void OnExiting();
     }
 }

@@ -30,6 +30,11 @@ namespace SuperMario.Screens
             lives = Lives;
         }
 
+        public override void OnExiting()
+        {
+            
+        }
+
         public override void Load(ContentManager content)
         {
             playerIcon = content.Load<Texture2D>("Textures/Icons/mario");   

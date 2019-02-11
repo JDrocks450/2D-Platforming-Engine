@@ -45,6 +45,11 @@ namespace SuperMario
         }
         internal virtual bool AllowBreakBrickBlock => true;        
 
+        public bool IsDead
+        {
+            get; internal set;
+        }
+
         public enum MovementMode
         {
             STILL,
@@ -87,6 +92,7 @@ namespace SuperMario
         public virtual void Die()
         {
             Remove();
+            IsDead = true;
         }
 
         public override void Update(GameTime gameTime)

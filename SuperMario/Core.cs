@@ -57,6 +57,8 @@ namespace SuperMario
             get => (Player)GameObjects.Find(x => x is Player);
         }
 
+        public static int Lives = 5;
+
         public static SpriteFont Font;
 
         public static Point MousePosition;
@@ -99,7 +101,7 @@ namespace SuperMario
             BaseTexture = new Texture2D(GraphicsDevice, 1, 1);
             BaseTexture.SetData(new Color[] { Color.White });
             GameCamera = new Camera();
-            CurrentScreen = Screen.CreateScreen(Screen.SCREENS.GAME);
+            UIElements.Add(new Main_Menu(this));
             base.Initialize();
         }
 
@@ -113,8 +115,19 @@ namespace SuperMario
             ControlHandler = new Controls(Path.Combine(Dir, Controls.XMLNAME));
             PrefabObjects.Prefab.PrefabWarmup();
             Font = Content.Load<SpriteFont>("Fonts/Font");
-            UI.Tooltip.Load(Content, SCRWIDTH, SCRHEIGHT, Core.BaseTexture);
-            levelData = LevelLoader.LevelData.LoadFile(LevelLoader.LevelData.defaultURI);
+            ((Screen)UIElements[0]).Load(Content);
+            UI.Tooltip.Load(Content, SCRWIDTH, SCRHEIGHT, Core.BaseTexture);                        
+        }
+
+        public void PostMainMenu()
+        {
+            //Init.
+            UISafeElements = new List<UI.UIComponent>();
+            UIElements = new List<UI.UIComponent>();
+            SafeObjects = new GameObject[0];
+            GameObjects.Clear();
+            //Load                        
+            levelData = LevelLoader.LevelData.LoadFile();
             if (CurrentScreen is LevelCreator)
                 ((LevelCreator)CurrentScreen).LoadLevel(levelData);
             CurrentScreen.Load(Content);
@@ -126,11 +139,7 @@ namespace SuperMario
         /// </summary>
         protected override void UnloadContent()
         {
-            if (CurrentScreen is LevelCreator) {
-                var r = System.Windows.Forms.MessageBox.Show("Would you like to save the level? Any changes made will be lost otherwise.", "Save Level?", System.Windows.Forms.MessageBoxButtons.YesNo);
-                if (r == System.Windows.Forms.DialogResult.Yes)
-                    levelData.WriteAllObjects(GameObjects);
-            }     
+            CurrentScreen?.OnExiting();
         }
 
         static List<UI.UIComponent> UISafeElements = new List<UI.UIComponent>();
@@ -141,13 +150,18 @@ namespace SuperMario
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
-
             MousePosition = GameCamera.Screen.Location + Mouse.GetState().Position;
             UISafeElements = UIElements.ToList();
-            CurrentScreen.Update(gameTime);
+            CurrentScreen?.Update(gameTime);
             IsMouseVisible = MouseVisible;
+            if (Keyboard.GetState().IsKeyDown(Keys.Escape))
+            {
+                if (!UISafeElements.OfType<Main_Menu>().Any())
+                {
+                    UIElements.Add(new Main_Menu(this));
+                    ((Screen)UIElements.Last()).Load(Manager);
+                }
+            }
             if (RESTART_FLAG)
                 Exit();
             foreach (var uielement in UISafeElements)
@@ -161,10 +175,10 @@ namespace SuperMario
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(CurrentScreen.Background);
-            spriteBatch.Begin(CurrentScreen.SortMode, null, SamplerState.LinearWrap, null, null, null, GameCamera.Transform(GraphicsDevice)); //Repeating texture objects drawn here
+            GraphicsDevice.Clear(CurrentScreen?.Background ?? Color.Black);
+            spriteBatch.Begin(CurrentScreen?.SortMode ?? SpriteSortMode.FrontToBack, null, SamplerState.LinearWrap, null, null, null, GameCamera.Transform(GraphicsDevice)); //Repeating texture objects drawn here
             if (!(CurrentScreen is UI.UIComponent))
-                CurrentScreen.Draw(spriteBatch);            
+                CurrentScreen?.Draw(spriteBatch);            
             spriteBatch.End();
             spriteBatch.Begin();
             foreach (var element in UISafeElements)

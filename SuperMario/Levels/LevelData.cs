@@ -24,6 +24,7 @@ namespace SuperMario.LevelLoader
             BUSH,
             GOOMBA,
             WARPPIPE,
+            INDESTRUCT,
         }
 
         enum DATA_LAYOUT
@@ -45,9 +46,23 @@ namespace SuperMario.LevelLoader
 
         public static string defaultURI = Path.Combine(Environment.CurrentDirectory, "data.lev");
 
-        public static LevelData LoadFile(string url)
+        public static LevelData LoadFile(string url = default)
         {
             var data = new LevelData();
+            if (url == default)
+            {
+                var ofd = new System.Windows.Forms.OpenFileDialog()
+                {
+                    Title = "Select Save File to Open",
+                    AddExtension = true,
+                    CheckPathExists = true,
+                    Filter = "LEV (Level Data) File|*.lev",
+                };
+                if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                    url = ofd.FileName;
+                else
+                    url = defaultURI;
+            }
             data.uri = url;
             if (true)
             {
@@ -183,13 +198,16 @@ namespace SuperMario.LevelLoader
                     obj = new Enemies.Goomba(box.Location, Enemies.Goomba.Direction.Left);
                     break;
                 case OBJ_TABLE.MARIO:
-                    obj = new Player(box);
+                    obj = new Player(new Rectangle(box.Location, new Point(50, 100)));
                     break;
                 case OBJ_TABLE.QUES_BLOCK:
                     obj = new PrefabObjects.QuestionBlock(box, PrefabObjects.QuestionBlock.SpawnObjectLogic.Inferred, null);
                     break;
                 case OBJ_TABLE.WARPPIPE:
                     obj = new PrefabObjects.WarpPipe(StartPos.Location);
+                    break;
+                case OBJ_TABLE.INDESTRUCT:
+                    obj = new PrefabObjects.Indestructible(StartPos);
                     break;
             }
             return obj;
@@ -252,9 +270,28 @@ namespace SuperMario.LevelLoader
 
         public void WriteAllObjects(List<GameObject> objects)
         {
-            File.WriteAllText(uri, String.Empty);
-            foreach (var obj in objects)
-                WriteObjectDataToFile(obj);
+        retry:
+            var r = System.Windows.Forms.MessageBox.Show("Would you like to save the level? Any changes made will be lost otherwise.", "Save Level?", System.Windows.Forms.MessageBoxButtons.YesNo);
+            if (r == System.Windows.Forms.DialogResult.Yes)
+            {                
+                var sfd = new System.Windows.Forms.SaveFileDialog()
+                {
+                    Title = "Select Save File Destination",
+                    AddExtension = true,
+                    CheckPathExists = true,
+                    Filter = "LEV (Level Data) File|*.lev",
+                    FileName = uri
+                };
+                if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    uri = sfd.FileName;
+                    File.WriteAllText(uri, String.Empty);
+                    foreach (var obj in objects)
+                        WriteObjectDataToFile(obj);
+                }
+                else
+                    goto retry;
+            }
         }
     }
 }

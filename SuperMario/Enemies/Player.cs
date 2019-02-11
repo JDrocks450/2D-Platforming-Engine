@@ -106,6 +106,23 @@ namespace SuperMario
             }
         }
 
+        public override void Die()
+        {
+            base.Die();
+            Core.Lives--;
+            return;
+            if (!IsDead)
+            {
+                LimitedCollision = true;
+                StandingCollisionOnly = false;
+                Invulnerable = false;
+                Acceleration.Y = -.5f;
+                Jump(10);
+                IsDead = true;
+            }
+                
+        }
+
         public void ThrowFireball()
         {
             Core.GameObjects.Add(new Enemies.Fireball(new Point((int)X + Source.Width + 5, (int)Y)));
@@ -203,6 +220,7 @@ namespace SuperMario
             VerifyMovement();
             if (Focused)
                 GetInputs(keyboard, gameTime);
+            if (!IsDead)
             HandleInvulnerabilty(gameTime);
             base.Update(gameTime);
             PrevVelocity = Velocity;
@@ -227,7 +245,7 @@ namespace SuperMario
         public void GetInputs(KeyboardState keyboard, GameTime gameTime)
         {            
             canRun = false;
-            var keyPresses = Core.ControlHandler.GetKeyControl(keyboard);
+            var keyPresses = Core.ControlHandler.GetKeyControl();
             var fireballCheck = false;
             foreach (var k in keyPresses)
             {

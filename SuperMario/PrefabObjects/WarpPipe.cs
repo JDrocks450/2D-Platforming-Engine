@@ -12,7 +12,7 @@ namespace SuperMario.PrefabObjects
     {
         public override string TextureName => "warp1";
         public override Point PreferredSize => new Point(100, 100);
-        public override Point IconSize => new Point(50, 50);
+        public override Point IconSize => new Point(50, 50);        
 
         const float SECONDS_WAIT = .5f;
 
@@ -63,13 +63,14 @@ namespace SuperMario.PrefabObjects
         public WarpPipe(Point Location) : base(new Microsoft.Xna.Framework.Rectangle(Location, new Point(0)))
         {
             OnCollision += WarpPipe_OnCollision;
+            ZIndex = .6f;
         }
 
         private void WarpPipe_OnCollision(Collidable.CollisionType type, Collidable collision, GameObject other)
         {
             if (type == Collidable.CollisionType.FLOOR)
                 if(other == Core.ControlledPlayer )
-                    if (Core.ControlHandler.GetKeyControl(Keyboard.GetState()).Contains("down"))
+                    if (Core.ControlHandler.GetKeyControl().Contains("down"))
                     {
                         InUse = true;
                     }                        
@@ -102,6 +103,8 @@ namespace SuperMario.PrefabObjects
                 }
                 var play = Core.ControlledPlayer;
                 play.LimitedCollision = false;
+                play.Velocity = new Vector2(0);
+                play.Acceleration = new Vector2(0);
                 Core.GameCamera.Focus = this;
                 int loc = (int)play.X + play.Source.Center.X;
                 if (loc != Hitbox.Center.X)

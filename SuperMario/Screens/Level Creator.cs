@@ -23,7 +23,7 @@ namespace SuperMario.Screens
             const int CAM_SPEED = 10;
             public override void Update(GameTime gameTime)
             {
-                var result = Core.ControlHandler.GetKeyControl(Keyboard.GetState());
+                var result = Core.ControlHandler.GetKeyControl();
                 if (result.Contains("left"))
                     X -= CAM_SPEED;
                 if (result.Contains("right"))
@@ -69,7 +69,12 @@ namespace SuperMario.Screens
 
         private void Os_OnObjectSpawnRequested(byte id)
         {
-            GameObjects.Add(LevelLoader.LevelData.GetInstanceByID(id, new Rectangle(0,0,0,0)));
+            GameObjects.Add(LevelLoader.LevelData.GetInstanceByID(id, new Rectangle(Snap(co.Location.ToPoint()).ToPoint(), new Point(0))));
+        }
+
+        public override void OnExiting()
+        {
+            Core.levelData.WriteAllObjects(GameObjects);
         }
 
         public void LoadLevel(LevelData source)
@@ -235,6 +240,8 @@ namespace SuperMario.Screens
                 Core.UIElements.Add(os);
             Core.GameCamera.Focus = co;
             Core.SafeObjects = GameObjects.ToArray();
+            if (Paused)
+                return;
             co.Update(gameTime);
             GetInputs();
             RunObjectPlacementMode(Holding);
@@ -255,11 +262,12 @@ namespace SuperMario.Screens
         GameObject Holding;
         bool isObjectHeld = false;
 
-        Vector2 Snap()
+        Vector2 Snap(Point Loc = default)
         {
-            var loc = Core.MousePosition;
-            int X = loc.X / GRID_SIZE;
-            int Y = loc.Y / GRID_SIZE;
+            if(Loc == default)
+                Loc = Core.MousePosition;
+            int X = Loc.X / GRID_SIZE;
+            int Y = Loc.Y / GRID_SIZE;
             return new Vector2(GRID_SIZE * X, GRID_SIZE * Y);
         }
 

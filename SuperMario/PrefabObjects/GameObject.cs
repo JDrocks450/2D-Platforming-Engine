@@ -250,7 +250,7 @@ namespace SuperMario
         {
             get => new char[0];
         }
-        public float ZIndex { get; set; } = .9f;
+        public float ZIndex { get; set; } = .5f;
         public bool GravityApplied { get; set; } = true;
 
         private void GameObject_OnCollision(Collidable.CollisionType type, Collidable collision, GameObject other)
@@ -296,7 +296,10 @@ namespace SuperMario
             if (Y >= Core.WORLD_BOTTOM - Height)
             {
                 Y = Core.WORLD_BOTTOM - Height;
-                Remove();
+                if (this is Character)
+                    (this as Character).Die();
+                else
+                    Remove();
                 return false;
             }
             return true;

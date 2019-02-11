@@ -30,7 +30,7 @@ namespace SuperMario.Screens
 
         void ShowLevelStart()
         {
-            var s = new Level_Start(this, "world 1 stage 1", 5);
+            var s = new Level_Start(this, "world 1 stage 1", Core.Lives);
             s.Load(Core.Manager);
             Core.UIElements.Add(s);
             Paused = true;
@@ -70,8 +70,19 @@ namespace SuperMario.Screens
                 obj.Update(gameTime);
             }            
             Collidable.Final();
+            if (!GameObjects.OfType<Player>().Any() && !showLevStart)
+                showLevStart = true;
             if (showLevStart)
+            {
                 ShowLevelStart();
+                if (!GameObjects.OfType<Player>().Any())
+                    GameObjects.Add(Player.DebugPlayer());
+            }
+        }
+
+        public override void OnExiting()
+        {
+            
         }
 
         public override void Draw(SpriteBatch sb)

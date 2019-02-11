@@ -56,12 +56,14 @@
     <Compile Include="Items\FireFlower.cs" />
     <Compile Include="Items\Item.cs" />
     <Compile Include="Items\Mushroom.cs" />
+    <Compile Include="PrefabObjects\Indestructible.cs" />
     <Compile Include="PrefabObjects\WarpPipe.cs" />
     <Compile Include="Properties\Resource1.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resource1.resx</DependentUpon>
     </Compile>
+    <Compile Include="Screens\Main Menu.cs" />
     <Compile Include="UI\ObjectSpawner.cs" />
     <Compile Include="Screens\Level Creator.cs" />
     <Compile Include="Levels\LevelData.cs" />
