@@ -14,7 +14,7 @@ namespace SuperMario.PrefabObjects
 
         public Indestructible(Rectangle Box) : base(Box)
         {
-            LimitedCollision = false;
+            CalculateCollision = false;
         }
     }
 }

@@ -16,7 +16,8 @@ namespace SuperMario.PrefabObjects
 
         public Bush(Point Location) : base(new Rectangle(Location, new Point(WIDTH, HEIGHT)))
         {
-            StandingCollisionOnly = true;
+            CollisionGhosted = true;
+            CalculateCollision = false;
         }
     }
 }

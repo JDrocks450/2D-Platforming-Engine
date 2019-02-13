@@ -102,7 +102,7 @@ namespace SuperMario.PrefabObjects
                     return;
                 }
                 var play = Core.ControlledPlayer;
-                play.LimitedCollision = false;
+                play.CalculateCollision = false;
                 play.Velocity = new Vector2(0);
                 play.Acceleration = new Vector2(0);
                 Core.GameCamera.Focus = this;
@@ -134,7 +134,7 @@ namespace SuperMario.PrefabObjects
                     else
                     {
                         InUse = false;
-                        play.LimitedCollision = true;
+                        play.CalculateCollision = true;
                         Core.GameCamera.Focus = Core.ControlledPlayer;
                         IsRecieveing = false;
                     }

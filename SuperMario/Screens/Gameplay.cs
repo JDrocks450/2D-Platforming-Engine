@@ -67,7 +67,8 @@ namespace SuperMario.Screens
                 GameObjects.Add(new Goomba(new Point((int)(Core.ControlledPlayer?.Location ?? new Vector2()).X, 0), Goomba.Direction.Right));
             foreach (var obj in Core.SafeObjects)
             {
-                obj.Update(gameTime);
+                if (obj.OnScreen)
+                    obj.Update(gameTime);
             }            
             Collidable.Final();
             if (!GameObjects.OfType<Player>().Any() && !showLevStart)
@@ -88,7 +89,8 @@ namespace SuperMario.Screens
         public override void Draw(SpriteBatch sb)
         {
             foreach (var obj in Core.SafeObjects)
-                obj.Draw(sb);
+                if (obj.OnScreen)
+                    obj.Draw(sb);
         }
     }
 }

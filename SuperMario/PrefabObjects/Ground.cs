@@ -26,7 +26,7 @@ namespace SuperMario.PrefabObjects
         public Ground(Rectangle Hitbox) : base(Hitbox)
         {
             SetupRepeatingTexture(new Point(50));
-            LimitedCollision = false;
+            CalculateCollision = false;
             OnLocationChanged += Ground_OnLocationChanged;
             UpdateHeight(Hitbox.Y);
             //CreateBushes();

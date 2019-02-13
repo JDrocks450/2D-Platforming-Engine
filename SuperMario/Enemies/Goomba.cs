@@ -10,7 +10,8 @@ namespace SuperMario.Enemies
     public class Goomba : Character, Character.Enemy
     {
         const float ACCEL = .1f;
-        const int WIDTH = 50, HEIGHT = 50;        
+        const int WIDTH = 50, HEIGHT = 50;
+        const int WALK_TIMER = 5; //the amount of frames that the walkingDir property can't change.
 
         public override string TextureName => "enemies/goomba";
         public override string IconName => "Icons/goomba";
@@ -18,18 +19,17 @@ namespace SuperMario.Enemies
         public override Point PreferredSize => new Point(WIDTH, HEIGHT);
         public override Point IconSize => new Point(100, 50);
         internal override float StompBoost => 20;
-
-        public enum Direction : int
+        
+        Direction walkingDir
         {
-            Left,
-            Right
+            get => Facing;
+            set => Facing = value;
         }
-        Direction walkingDir;
 
         public Goomba(Point location, Direction WalkDirection = Direction.Left) : base(new Rectangle(location, new Point(WIDTH, HEIGHT)))
         {
             walkingDir = WalkDirection;
-            LimitedCollision = true;
+            CalculateCollision = true;
             DefaultSource = false;
             OnCollision += Goomba_OnCollision;
         }
@@ -39,12 +39,13 @@ namespace SuperMario.Enemies
             CollidedInto(type, collision, other);
         }
 
+        int walkTimer = -1;
         public override void CollidedInto(Collidable.CollisionType type, Collidable col, GameObject other)
         {
             if (other is Player)
             {
                 var character = other as Player;
-                if (type != Collidable.CollisionType.CEILING && (character.Y + character.Source.Height) <= Hitbox.Center.Y)                    
+                if (type != Collidable.CollisionType.CEILING && (character.Y + character.Source.Height) <= Hitbox.Center.Y)
                 {
                     character.Jump(StompBoost);
                     Harm();
@@ -53,7 +54,12 @@ namespace SuperMario.Enemies
                     character.Harm();
             }
             else if (type == Collidable.CollisionType.WALL)
+            {
+                if (walkTimer > 0)
+                    return;
                 walkingDir = (Direction)(walkingDir != 0 ? 0 : 1);
+                walkTimer = 0;
+            }
         }
 
         public override void Harm()
@@ -81,7 +87,12 @@ namespace SuperMario.Enemies
                 Velocity.X = 0;
             }
             Animate();
-            base.Update(gameTime);                    
+            base.Update(gameTime);
+            if (walkTimer >= 0)
+                if (walkTimer < WALK_TIMER)
+                    walkTimer++;
+                else
+                    walkTimer = -1;
         }
 
         void Animate()

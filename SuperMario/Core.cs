@@ -84,7 +84,8 @@ namespace SuperMario
             Content.RootDirectory = "Content";
             Manager = Content;
             graphics.PreferredBackBufferWidth = SCRWIDTH;
-            graphics.PreferredBackBufferHeight = SCRHEIGHT;            
+            graphics.PreferredBackBufferHeight = SCRHEIGHT;
+            graphics.SynchronizeWithVerticalRetrace = false;
 #if DEBUG
             DEBUG = true;
 #endif

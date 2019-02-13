@@ -54,6 +54,10 @@ namespace SuperMario
             get => Core.GameCamera.Focus == this;
         }
 
+        [Obsolete]
+        /// <summary>
+        /// Works but is slow, try not to use it too often
+        /// </summary>
         public string Name => Enum.GetName(typeof(LevelLoader.LevelData.OBJ_TABLE), LevelLoader.LevelData.GetIDByInstance(this));
 
         public int Width
@@ -122,7 +126,7 @@ namespace SuperMario
         public float Graphics_Rotation
         {
             get; set;
-        }
+        } = 0;
 
         /// <summary>
         /// The amount location changes per frame
@@ -136,8 +140,11 @@ namespace SuperMario
 
         public Texture2D Texture;
         public Color TextureColor = Color.White;
-        internal bool DefaultSource = true;
 
+        internal bool DefaultSource = true;
+        /// <summary>
+        /// The area on the Spritesheet to use as the drawn sprite.
+        /// </summary>
         internal Rectangle Source;
         internal bool DefaultTextureClip = true;
         /// <summary>
@@ -158,14 +165,23 @@ namespace SuperMario
         /// Marks this object to have it's texture repeated across its Hitbox.
         /// </summary>
         internal bool IsTextureRepeating = false;
+        /// <summary>
+        /// The amount of times to repeat the texture.
+        /// </summary>
         internal Point RepeatTextureSize;
 
+        /// <summary>
+        /// Gets or sets whether to use the middle of the object for CameraFollowPoint.
+        /// </summary>
         public bool ManualCameraFollowPoint
         {
             get;
             internal set;
         } = false;
 
+        /// <summary>
+        /// The point the camera looks at when following this object.
+        /// </summary>
         public Vector2 CameraFollowPoint
         {
             get
@@ -186,13 +202,22 @@ namespace SuperMario
         internal Spritesheet Animation;
         internal TimeSpan animationTimer;
 
+        /// <summary>
+        /// The list of collidables for the object. (almost always 4)
+        /// </summary>
         internal List<Collidable> Collision;
-        internal bool LimitedCollision = true;
+        /// <summary>
+        /// Object can clip through objects and has no gravity. Other objects cannot pass through it unless they are also not calculating collision.
+        /// </summary>
+        internal bool CalculateCollision = true;
         internal bool StandingCollisionOnly = false;
         internal bool DisableEnemyHitDetection = false;
         public bool gravityAirStateChange;
 
         int _inAirFrameChangedAmount = 0;
+        /// <summary>
+        /// Gets or sets whether the object is in the air. (has no effect on gravity)
+        /// </summary>
         public bool InAir
         {
             get => _inAir;
@@ -205,15 +230,46 @@ namespace SuperMario
                 }
             }
         }
+        /// <summary>
+        /// Object can clip through objects and other objects can also clip though it.
+        /// </summary>
+        public bool CollisionGhosted
+        {
+            get; set;
+        }
+        /// <summary>
+        /// Gets or sets whether the object's collision has been updated this frame.
+        /// </summary>
+        public bool Physics_CollisionUpdatedOnFrame
+        {
+            get; set;
+        }
+        /// <summary>
+        /// Gets the last object stood on.
+        /// </summary>
         public GameObject StandingOn
         {
             get; internal set;
         }
+        /// <summary>
+        /// Gets the last object stood on returns null if in air.
+        /// </summary>
+        /// <returns></returns>
         internal GameObject GetObjectRestingOn()
         {
             if (!InAir)
                 return StandingOn;
             return null;
+        }
+        /// <summary>
+        /// gets or sets whether the object is on screen and is able to be drawn and updated.
+        /// </summary>
+        internal virtual bool OnScreen
+        {
+            get
+            {
+                return Hitbox.Right >= Core.GameCamera.Screen.X && X < Core.GameCamera.Screen.Right + 50;
+            }
         }
 
         private float _x;
@@ -289,7 +345,7 @@ namespace SuperMario
 
         bool VerifyGravity()
         {
-            if (!LimitedCollision)
+            if (!CalculateCollision)
                 return false;
             if (!GravityApplied)
                 return false;
@@ -348,8 +404,8 @@ namespace SuperMario
             {
                 case false:
                     sb.Draw(Texture, 
-                        new Rectangle(TextureClip.Location + (Graphics_Rotation > 0 ? (TextureClip.Size / new Point(2)) : new Point(0)), TextureClip.Size), 
-                        Source, TextureColor, Graphics_Rotation, Graphics_Rotation > 0 ? 
+                        new Rectangle(TextureClip.Location + (Graphics_Rotation != 0 ? (TextureClip.Size / new Point(2)) : new Point(0)), TextureClip.Size), 
+                        Source, TextureColor, Graphics_Rotation, Graphics_Rotation != 0 ? 
                         new Vector2(Source.Width/2, Source.Height/2) : Vector2.Zero, effects, ZIndex);
                     break;
                 case true:

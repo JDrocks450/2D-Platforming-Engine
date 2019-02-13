@@ -50,6 +50,20 @@ namespace SuperMario
             get; internal set;
         }
 
+        public enum Direction : int
+        {
+            Left,
+            Right
+        }
+        public Direction Facing = Direction.Left;
+
+        internal override bool OnScreen => X >= Core.GameCamera.Screen.X && X < Core.GameCamera.Screen.Right;         
+
+        public bool ForceUpdate
+        {
+            get; internal set;
+        } = false;
+
         public enum MovementMode
         {
             STILL,

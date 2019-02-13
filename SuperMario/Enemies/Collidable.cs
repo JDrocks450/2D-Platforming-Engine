@@ -147,7 +147,8 @@ namespace SuperMario
         {
             foreach (var obj in Core.SafeObjects)
             {
-                obj.gravityAirStateChange = false;                
+                obj.gravityAirStateChange = false;
+                obj.Physics_CollisionUpdatedOnFrame = false;
             }
             _updatedObjs.Clear();
         }
@@ -209,17 +210,32 @@ namespace SuperMario
             return input;
         }
 
+        public static Rectangle GetAOERect(GameObject obj)
+        {
+            return new Rectangle((int)obj.X - 50, (int)obj.Y - 50, 2 * 50 + obj.Width, obj.Height + 2 * 50);
+        }
+
         public void UpdateCollsion()
         {
+            if (Following.CollisionGhosted)
+                return;
             Setup();
+            Following.Physics_CollisionUpdatedOnFrame = true;
+            var aoeRect = GetAOERect(Following);
             foreach (var obj in Core.SafeObjects)
             {
-                if (obj != Following && obj.LimitedCollision)
+                if (obj != Following && obj.CalculateCollision)
                 {
+                    if (!aoeRect.Intersects(obj.Hitbox))                    
+                        continue;                    
+                    if (obj.CollisionGhosted)
+                        continue;
+                    if (Following is Fireball && obj is Player)
+                        continue;
                     if (!obj.gravityAirStateChange)
-                        obj.InAir = true;
+                        obj.InAir = true;                    
                     foreach (var colBox in collsionboxes)
-                    {
+                    {                        
                         if ((obj.DisableEnemyHitDetection || Following.DisableEnemyHitDetection) && (obj is Character.Enemy || Following is Character.Enemy))
                             break;
                         var result = obj.Collision.Where(x => x.collsionboxes.Where(y => y.Intersects(colBox)).Any());
@@ -281,6 +297,9 @@ namespace SuperMario
                             break;
                         }
                     }
+                    if (!obj.Physics_CollisionUpdatedOnFrame && !obj.OnScreen)
+                        foreach (var coll in obj.Collision)
+                            coll.UpdateCollsion();
                 }             
             }
         }
@@ -307,7 +326,7 @@ namespace SuperMario
                 color = Color.Aqua;
             color *= .5f; //make color semi-transparent
             foreach (var colBox in collsionboxes)
-                sb.Draw(Core.BaseTexture, colBox, null, color, 0, Vector2.Zero, SpriteEffects.None, 1);            
+                sb.Draw(Core.BaseTexture, colBox, null, color, 0, Vector2.Zero, SpriteEffects.None, 1);              
         }
     }
 }

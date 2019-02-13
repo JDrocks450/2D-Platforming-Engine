@@ -23,6 +23,8 @@ namespace SuperMario
         const float JUMP_BOOST_TIME = .3f;
         const float INVULNERABILITY_TIME = 3;
 
+
+
         internal override float WalkingSpeed => VELOCITY_WALK_X;
         internal override float RunningSpeed => VELOCITY_RUN_X;
         internal override float HoldingSpeed => VELOCITY_HOLD_X;
@@ -113,7 +115,7 @@ namespace SuperMario
             return;
             if (!IsDead)
             {
-                LimitedCollision = true;
+                CalculateCollision = true;
                 StandingCollisionOnly = false;
                 Invulnerable = false;
                 Acceleration.Y = -.5f;
@@ -125,7 +127,16 @@ namespace SuperMario
 
         public void ThrowFireball()
         {
-            Core.GameObjects.Add(new Enemies.Fireball(new Point((int)X + Source.Width + 5, (int)Y)));
+            switch (Facing)
+            {
+                case Enemies.Goomba.Direction.Right:
+                    Core.GameObjects.Add(new Enemies.Fireball(new Point((int)X + Source.Width + 5, (int)Y), Facing));
+                    break;
+                case Enemies.Goomba.Direction.Left:
+                    Core.GameObjects.Add(new Enemies.Fireball(new Point((int)X - Source.Width - 5, (int)Y), Facing));
+                    break;
+            }
+            
         }
 
         public void ChangePowerupState(PowerupState newState)
@@ -217,11 +228,13 @@ namespace SuperMario
         {
             var keyboard = Keyboard.GetState();
             HandleAnimation(gameTime);
+            if (Velocity.X != 0)
+                Facing = Velocity.X > 0 ? Direction.Right : Direction.Left;
             VerifyMovement();
             if (Focused)
                 GetInputs(keyboard, gameTime);
             if (!IsDead)
-            HandleInvulnerabilty(gameTime);
+                HandleInvulnerabilty(gameTime);
             base.Update(gameTime);
             PrevVelocity = Velocity;
         }
@@ -303,7 +316,7 @@ namespace SuperMario
 
         public override void Draw(SpriteBatch sb)
         {
-            effects = Velocity.X > 0 ? SpriteEffects.None : (Velocity.X == 0) ? effects : SpriteEffects.FlipHorizontally;
+            effects = Facing == Direction.Right ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
             base.Draw(sb);
         }
     }

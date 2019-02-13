@@ -247,7 +247,7 @@ namespace SuperMario.Screens
             RunObjectPlacementMode(Holding);
             foreach (var obj in Core.SafeObjects)
             {
-                obj.LimitedCollision = false;                                
+                obj.CalculateCollision = false;                                
                 if (currentPMode == PLACEMENT_MODE.NONE)
                 {
                     UI.Tooltip.HideTooltip(this);

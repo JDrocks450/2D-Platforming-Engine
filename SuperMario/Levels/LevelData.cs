@@ -61,16 +61,18 @@ namespace SuperMario.LevelLoader
                 if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                     url = ofd.FileName;
                 else
-                    url = defaultURI;
+                    url = null;
             }
             data.uri = url;
             if (true)
             {
-                if (!File.Exists(url))
+                if (url != null && !File.Exists(url))
                 {
                     File.Create(url);
                     return data;
                 }
+                else if (url is null)
+                    return data;
             }
             using (var file = File.OpenRead(url))
             {
@@ -280,7 +282,7 @@ namespace SuperMario.LevelLoader
                     AddExtension = true,
                     CheckPathExists = true,
                     Filter = "LEV (Level Data) File|*.lev",
-                    FileName = uri
+                    FileName = uri ?? ""
                 };
                 if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {

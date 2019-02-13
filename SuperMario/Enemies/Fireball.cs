@@ -12,41 +12,70 @@ namespace SuperMario.Enemies
     {
         public override string TextureName => "Enemies/fireball";        
         public override Point PreferredSize => new Point(35);
-
         const float SPEED = 8;
+        Vector2 Speed
+        {
+            get => new Vector2((Facing == Goomba.Direction.Left ? -1 : 1) * SPEED, SPEED);
+        }
 
-        public Fireball(Point origin) : base(new Rectangle(origin, new Point()))
+        public Fireball(Point origin, Direction d) : base(new Rectangle(origin, new Point()))
         {
             OnCollision += Fireball_OnCollision;
             GravityApplied = false;
-            Velocity = new Vector2(SPEED);
+            Facing = d;
+            Velocity = Speed;            
         }
 
+        int facingTimer = -1;
         private void Fireball_OnCollision(Collidable.CollisionType type, Collidable collision, GameObject other)
         {
-            if (other is Enemy)
-                (other as Character).Harm();
-            Remove();
+            CollidedInto(type, collision, other);
         }
 
+        public override void CollidedInto(Collidable.CollisionType type, Collidable col, GameObject other)
+        {
+            if (other is Enemy && !(other is Fireball))
+            {
+                (other as Character).Harm();
+                Remove();
+            }
+            else if (type == Collidable.CollisionType.WALL)
+            {
+                if (facingTimer > 0)
+                    return;
+                Facing = Facing == Direction.Right ? Direction.Left : Direction.Right;
+                facingTimer = 0;
+                bounces++;
+            }
+        }
+
+        int bounces = 0;
         public override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
+            if (facingTimer >= 0)
+                if (facingTimer < 5)
+                    facingTimer++;
+                else
+                    facingTimer = -1;
+            Velocity.X = Speed.X;
             if (!InAir)
             {
                 GravityApplied = true;
-                Jump(8f);
-                Velocity.X = SPEED;
+                Jump(8f);                
             }
+            if (bounces > 5)
+                Remove();
         }
 
         int animTimer = 0;
         public override void Draw(SpriteBatch sb)
         {
+            effects = Facing == Direction.Left ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
             base.Draw(sb);
-            if (animTimer == 5)
+            if (animTimer == 3)
             {
-                Graphics_Rotation += MathHelper.ToRadians(45);
+                Graphics_Rotation += Facing == Direction.Right ? 1 : -1 * MathHelper.ToRadians(45);                
                 animTimer = 0;
             }
             animTimer++;
