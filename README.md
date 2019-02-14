@@ -4,7 +4,7 @@ A super mario bros (NES) clone project that aims to provide players the ability 
 
 As of right now the creation aspect and gameplay aspect are functional and playable but lack content.
 
-##Instructions
+## Instructions
 Go to releases and download SuperMario.zip and extract it.
 Run SuperMario.exe and play, you can edit the controls of the game in Content > controls.xml
 
