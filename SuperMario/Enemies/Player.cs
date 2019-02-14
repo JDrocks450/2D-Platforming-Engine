@@ -23,8 +23,6 @@ namespace SuperMario
         const float JUMP_BOOST_TIME = .3f;
         const float INVULNERABILITY_TIME = 3;
 
-
-
         internal override float WalkingSpeed => VELOCITY_WALK_X;
         internal override float RunningSpeed => VELOCITY_RUN_X;
         internal override float HoldingSpeed => VELOCITY_HOLD_X;
@@ -288,7 +286,7 @@ namespace SuperMario
                         canRun = true;
                         break;
                     case "attack":
-                        if (!fireball_waiting)
+                        if (!fireball_waiting && PUState == PowerupState.FIRE)
                             ThrowFireball();
                         break;
                 }

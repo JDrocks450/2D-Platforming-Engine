@@ -58,6 +58,7 @@ namespace SuperMario
         }
 
         public static int Lives = 5;
+        public static int Coins = 0;
 
         public static SpriteFont Font;
 

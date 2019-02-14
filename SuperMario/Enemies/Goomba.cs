@@ -18,7 +18,6 @@ namespace SuperMario.Enemies
         internal override float WalkingSpeed => .75f;
         public override Point PreferredSize => new Point(WIDTH, HEIGHT);
         public override Point IconSize => new Point(100, 50);
-        internal override float StompBoost => 20;
         
         Direction walkingDir
         {

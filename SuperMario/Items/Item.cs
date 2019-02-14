@@ -14,6 +14,8 @@ namespace SuperMario.Items
             NULL,
             MUSHROOM,
             FIREFLOWER,
+            COIN,
+            EXTRA_LIFE,
             /// <summary>
             /// sets a flag in question blocks to infer the object to spawn.
             /// </summary>

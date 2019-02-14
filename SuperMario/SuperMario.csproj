@@ -51,6 +51,7 @@
     <Compile Include="Enemies\Character.cs" />
     <Compile Include="Enemies\Fireball.cs" />
     <Compile Include="Enemies\Goomba.cs" />
+    <Compile Include="Items\Coin.cs" />
     <Compile Include="PrefabObjects\GameObject.cs" />
     <Compile Include="Enemies\Player.cs" />
     <Compile Include="Items\FireFlower.cs" />

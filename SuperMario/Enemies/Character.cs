@@ -134,15 +134,10 @@ namespace SuperMario
             if (!InAir)
             {
                 if (Velocity.X > 0)
-                    if (Velocity.X <= WalkingSpeed)
+                    if (!RunningAllowed)
                         currentMovement = MovementMode.WALKING;
-                    else if (Velocity.X <= RunningSpeed)
-                    {
-                        if (!RunningAllowed)
-                            currentMovement = MovementMode.WALKING;
-                        else
-                            currentMovement = MovementMode.RUNNING;
-                    }
+                    else
+                        currentMovement = MovementMode.RUNNING;
             }
             else
             {
@@ -160,6 +155,14 @@ namespace SuperMario
                     Acceleration = Vector2.Zero;
                     break;
                 case MovementMode.AIR:
+                    if (RunningAllowed)
+                    {
+                        if (Velocity.X + Acceleration.X > RunningSpeed)
+                            Velocity.X = RunningSpeed - Acceleration.X;
+                    }
+                    else if (Velocity.X + Acceleration.X > WalkingSpeed)
+                        Velocity.X = WalkingSpeed - Acceleration.X;
+                    break;
                 case MovementMode.WALKING:
                     if (Velocity.X + Acceleration.X > WalkingSpeed)
                         Velocity.X = WalkingSpeed - Acceleration.X;

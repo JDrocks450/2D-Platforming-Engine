@@ -29,10 +29,13 @@ namespace SuperMario.ControlMapper
                 var name = b.Element("Name").Value;
                 name = name.ToLower();
                 var value = b.Element("Key").Value;
+                char cval = (char)0;
                 //special logic for spaces
                 if (value == "")
                     value = " ";
-                KeyBinds.Add(value.ToCharArray().First(), name);
+                if (value == "[shift]")
+                    cval = (char)160;
+                KeyBinds.Add(cval != 0 ? cval : value.ToCharArray().First(), name);
             }
         }
 
