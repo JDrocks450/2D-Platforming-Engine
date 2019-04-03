@@ -54,7 +54,8 @@ namespace SuperMario.Screens
 
         public override void Update(GameTime gameTime)
         {            
-            GameCamera.Focus = Core.ControlledPlayer;
+            if (GameCamera.Focus == null)
+                GameCamera.Focus = Core.ControlledPlayer;
             Core.SafeObjects = GameObjects.ToArray();
             if (Paused)
                 return;
@@ -67,7 +68,7 @@ namespace SuperMario.Screens
                 GameObjects.Add(new Goomba(new Point((int)(Core.ControlledPlayer?.Location ?? new Vector2()).X, 0), Goomba.Direction.Right));
             foreach (var obj in Core.SafeObjects)
             {
-                if (obj.OnScreen)
+                if (obj.OnScreen || obj.ForceUpdate)
                     obj.Update(gameTime);
             }            
             Collidable.Final();
