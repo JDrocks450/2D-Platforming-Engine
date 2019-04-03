@@ -27,7 +27,7 @@ namespace SuperMario
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
-        public const int SCRWIDTH = 1024, SCRHEIGHT = 768;
+        public const int SCRWIDTH = 1920, SCRHEIGHT = 1080;
 
         public static LevelLoader.LevelData levelData;
 
