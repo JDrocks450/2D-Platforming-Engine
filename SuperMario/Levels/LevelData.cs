@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using SuperMario.PrefabObjects;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -25,6 +26,9 @@ namespace SuperMario.LevelLoader
             GOOMBA,
             WARPPIPE,
             INDESTRUCT,
+            FLAG,
+            CASTLE,
+            BIGCASTLE
         }
 
         enum DATA_LAYOUT
@@ -210,6 +214,15 @@ namespace SuperMario.LevelLoader
                     break;
                 case OBJ_TABLE.INDESTRUCT:
                     obj = new PrefabObjects.Indestructible(StartPos);
+                    break;
+                case OBJ_TABLE.FLAG:
+                    obj = new Flagpole(StartPos.Location);
+                    break;
+                case OBJ_TABLE.CASTLE:
+                    obj = new Castle(StartPos.Location);
+                    break;
+                case OBJ_TABLE.BIGCASTLE:
+                    obj = new BigCastle(StartPos.Location);
                     break;
             }
             return obj;

@@ -272,6 +272,8 @@ namespace SuperMario
             }
         }
 
+        public virtual bool ForceUpdate { get; set; } = false;
+
         private float _x;
         private float _y;
         private int _w;
@@ -364,6 +366,8 @@ namespace SuperMario
         public virtual void Remove()
         {
             Core.GameObjects.Remove(this);
+            if (Focused)
+                Core.GameCamera.Focus = null;
         }
 
         public void PHYSICS_INVOKECOLLISION(Collidable.CollisionType type, Collidable collidable, GameObject other)

@@ -87,9 +87,10 @@ namespace SuperMario.PrefabObjects
         {
             if (Identifier == -1)
                 Identifier = GetIndentifier();
-            base.Update(gameTime);
+            if (OnScreen)
+                base.Update(gameTime);
             if (InUse)
-            {
+            {                
                 if (IsRecieveing)
                 {
                     _waitTimer += gameTime.ElapsedGameTime;
@@ -104,8 +105,7 @@ namespace SuperMario.PrefabObjects
                 var play = Core.ControlledPlayer;
                 play.CalculateCollision = false;
                 play.Velocity = new Vector2(0);
-                play.Acceleration = new Vector2(0);
-                Core.GameCamera.Focus = this;
+                play.Acceleration = new Vector2(0);                
                 int loc = (int)play.X + play.Source.Center.X;
                 if (loc != Hitbox.Center.X)
                 {
@@ -135,6 +135,7 @@ namespace SuperMario.PrefabObjects
                     {
                         InUse = false;
                         play.CalculateCollision = true;
+                        ForceUpdate = false;
                         Core.GameCamera.Focus = Core.ControlledPlayer;
                         IsRecieveing = false;
                     }
@@ -149,6 +150,7 @@ namespace SuperMario.PrefabObjects
         public void Recieve()
         {
             InUse = true;
+            ForceUpdate = true;
             IsRecieveing = true;            
         }
 
