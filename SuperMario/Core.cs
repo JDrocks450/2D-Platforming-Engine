@@ -103,7 +103,7 @@ namespace SuperMario
             BaseTexture = new Texture2D(GraphicsDevice, 1, 1);
             BaseTexture.SetData(new Color[] { Color.White });
             GameCamera = new Camera();
-            UIElements.Add(new Main_Menu(this));
+            UIElements.Add(new Main_Menu());
             base.Initialize();
         }
 
@@ -121,18 +121,20 @@ namespace SuperMario
             UI.Tooltip.Load(Content, SCRWIDTH, SCRHEIGHT, Core.BaseTexture);                        
         }
 
-        public void PostMainMenu()
+        public static void PostMainMenu()
         {
             //Init.
             UISafeElements = new List<UI.UIComponent>();
             UIElements = new List<UI.UIComponent>();
             SafeObjects = new GameObject[0];
+            Coins = 0;
+            Lives = 5;
             GameObjects.Clear();
             //Load                        
             levelData = LevelLoader.LevelData.LoadFile();
             if (CurrentScreen is LevelCreator)
                 ((LevelCreator)CurrentScreen).LoadLevel(levelData);
-            CurrentScreen.Load(Content);
+            CurrentScreen.Load(Manager);
         }
 
         /// <summary>
@@ -159,11 +161,7 @@ namespace SuperMario
             IsMouseVisible = MouseVisible;
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
             {
-                if (!UISafeElements.OfType<Main_Menu>().Any())
-                {
-                    UIElements.Add(new Main_Menu(this));
-                    ((Screen)UIElements.Last()).Load(Manager);
-                }
+                ShowMainMenu();
             }
             if (RESTART_FLAG)
                 Exit();
@@ -172,6 +170,15 @@ namespace SuperMario
                 uielement.Update(gameTime);
             base.Update(gameTime);
             System.Diagnostics.Debug.WriteLine("Update took: " + (DateTime.Now.TimeOfDay - start).TotalMilliseconds + "ms");
+        }
+
+        public static void ShowMainMenu()
+        {
+            if (!UISafeElements.OfType<Main_Menu>().Any())
+            {
+                UIElements.Add(new Main_Menu());
+                ((Screen)UIElements.Last()).Load(Manager);
+            }
         }
 
         /// <summary>

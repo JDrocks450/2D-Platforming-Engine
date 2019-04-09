@@ -21,11 +21,9 @@ namespace SuperMario.Screens
         public int Height { get; set; } = Core.SCRHEIGHT;
         public bool Disabled { get; set; } = false;
 
-        Core ci;
-
-        public Main_Menu(Core coreInstance) : base(SCREENS.LEVEL_START)
+        public Main_Menu() : base(SCREENS.LEVEL_START)
         {
-            ci = coreInstance;
+
         }
 
         public override void Load(ContentManager content)
@@ -68,7 +66,7 @@ namespace SuperMario.Screens
                     Core.CurrentScreen.OnExiting();
                 Core.GameCamera = new Camera();
                 Core.CurrentScreen = CreateScreen(scr);
-                ci.PostMainMenu();               
+                Core.PostMainMenu();               
                 Core.UIElements.Remove(this);
                 Core.CurrentScreen.Paused = false;
             }
