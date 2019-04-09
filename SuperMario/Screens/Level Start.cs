@@ -22,6 +22,7 @@ namespace SuperMario.Screens
         public int Y { get => 0; set { } }
         public int Width { get; set; } = Core.SCRWIDTH;
         public int Height { get; set; } = Core.SCRHEIGHT;
+        public bool Disabled { get; set; } = false;
 
         public Level_Start(Screen FocusTo, string World, int Lives) : base(SCREENS.LEVEL_START)
         {

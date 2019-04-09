@@ -3,11 +3,10 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using SuperMario.LevelLoader;
+using SuperMario.PrefabObjects;
+using SuperMario.UI;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SuperMario.Screens
 {
@@ -55,21 +54,24 @@ namespace SuperMario.Screens
 
         PLACEMENT_MODE currentPMode = PLACEMENT_MODE.NONE;
 
-        CameraObject co;
-        ObjectSpawner os;
+        CameraObject objCamera;
+        ObjectSpawner Spawner;
+        ItemAssigner Assigner;
+
         public LevelCreator() : base(SCREENS.CREATOR)
         {
             Core.DEBUG = false;
             Core.MouseVisible = true;
-            co = new CameraObject();
+            objCamera = new CameraObject();
+            Core.GameCamera.Focus = objCamera;
             Core.GameCamera.CameraIgnoreWorldBottom = true;
-            os = new ObjectSpawner();
-            os.OnObjectSpawnRequested += Os_OnObjectSpawnRequested;
+            Spawner = new ObjectSpawner();
+            Spawner.OnObjectSpawnRequested += Os_OnObjectSpawnRequested;
         }
 
         private void Os_OnObjectSpawnRequested(byte id)
         {
-            GameObjects.Add(LevelLoader.LevelData.GetInstanceByID(id, new Rectangle(Snap(co.Location.ToPoint()).ToPoint(), new Point(0))));
+            GameObjects.Add(LevelLoader.LevelData.GetInstanceByID(id, new Rectangle(Snap(objCamera.Location.ToPoint()).ToPoint(), new Point(0))));
         }
 
         public override void OnExiting()
@@ -234,15 +236,16 @@ namespace SuperMario.Screens
         }        
 
         Point mouseLastPos;
+        Point mouseStartDragPosition;
+
         public override void Update(GameTime gameTime)
         {
-            if (!Core.UIElements.Contains(os))
-                Core.UIElements.Add(os);
-            Core.GameCamera.Focus = co;
+            if (!Core.UIElements.Contains(Spawner))
+                 Core.UIElements.Add(Spawner);            
             Core.SafeObjects = GameObjects.ToArray();
             if (Paused)
                 return;
-            co.Update(gameTime);
+            objCamera.Update(gameTime);
             GetInputs();
             RunObjectPlacementMode(Holding);
             foreach (var obj in Core.SafeObjects)
@@ -257,6 +260,8 @@ namespace SuperMario.Screens
                     obj.Update(gameTime);
                 CheckObjectMouseCollision(obj);
             }
+            if (Assigner != null && !Core.UIElements.Contains(Assigner))
+                Core.UIElements.Add(Assigner);
             mouseLastPos = Mouse.GetState().Position;
         }
 
@@ -311,10 +316,16 @@ namespace SuperMario.Screens
                 if (mouseRect.Intersects(getVisibleHitbox(obj)))
                     if (mouse.LeftButton == ButtonState.Pressed)
                     {
+                        mouseStartDragPosition = Core.MousePosition;
                         startDrag(obj);
                     }
             if (mouse.LeftButton == ButtonState.Released)
             {
+                if (isObjectHeld)
+                {
+                    if (Core.MousePosition == mouseStartDragPosition)
+                        ObjectClicked(Holding);                    
+                }
                 dropObject();
             }
         }
@@ -328,6 +339,7 @@ namespace SuperMario.Screens
             infiplaceCount = 0;
         }
 
+
         void startDrag(GameObject obj)
         {
             if (!isObjectHeld)
@@ -338,10 +350,39 @@ namespace SuperMario.Screens
             }
         }
 
+        void ObjectClicked(GameObject obj)
+        {
+            if (obj is QuestionBlock)
+            {
+                Assigner = new ItemAssigner(obj as QuestionBlock, true);
+                Assigner.Closed += (object s, EventArgs e) =>
+                {
+                    Core.UIElements.Remove(Assigner);
+                    Assigner = null;
+                    Core.GameCamera.Focus = objCamera;
+                };
+            }
+        }
+
         public override void Draw(SpriteBatch batch)
-        {            
+        {
             foreach (var obj in Core.SafeObjects)
-                obj.Draw(batch);
+            {
+                if (obj.OnScreen)
+                    obj.Draw(batch);
+                if (obj is QuestionBlock)
+                {
+                    var quest = obj as QuestionBlock;
+                    if (quest.HasItem)
+                    {
+                        var text = quest.StoredItem.Texture;
+                        if (text is null)
+                            quest.StoredItem.Load();
+                        text = quest.StoredItem.Texture;
+                        batch.Draw(text, obj.Hitbox, Color.White);
+                    }
+                }
+            }
             DrawGrid(batch);
         }
     }

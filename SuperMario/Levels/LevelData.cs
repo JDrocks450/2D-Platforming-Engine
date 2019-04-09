@@ -28,7 +28,8 @@ namespace SuperMario.LevelLoader
             INDESTRUCT,
             FLAG,
             CASTLE,
-            BIGCASTLE
+            BIGCASTLE,
+            COIN
         }
 
         enum DATA_LAYOUT
@@ -223,6 +224,9 @@ namespace SuperMario.LevelLoader
                     break;
                 case OBJ_TABLE.BIGCASTLE:
                     obj = new BigCastle(StartPos.Location);
+                    break;
+                case OBJ_TABLE.COIN:
+                    obj = new Items.Coin(StartPos.Location);
                     break;
             }
             return obj;

@@ -156,7 +156,7 @@ namespace SuperMario
             {
                 if (DefaultTextureClip)
                     return Hitbox;
-                int diffX = (Width - Source.Width)/2;
+                int diffX = (Width - Source.Width) / 2;
                 int diffY = (Height - Source.Height) / 2;
                 return new Rectangle((int)Location.X + diffX, (int)Location.Y + diffY, Source.Width, Source.Height);
             }
@@ -397,7 +397,7 @@ namespace SuperMario
                 else
                     col.UpdateCollsion();                
             if (DefaultSource)
-            {
+            {               
                 Source = new Rectangle(0, 0, Texture.Width, Texture.Height);
             }
         }

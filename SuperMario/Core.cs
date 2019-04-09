@@ -54,7 +54,7 @@ namespace SuperMario
 
         public static Player ControlledPlayer
         {
-            get => GameObjects.OfType<Player>()?.First() ?? null;
+            get => GameObjects.Find(x => x is Player) as Player;
         }
 
         public static int Lives = 5;
@@ -152,6 +152,7 @@ namespace SuperMario
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
+            var start = DateTime.Now.TimeOfDay;
             MousePosition = GameCamera.Screen.Location + Mouse.GetState().Position;
             UISafeElements = UIElements.ToList();
             CurrentScreen?.Update(gameTime);
@@ -167,8 +168,10 @@ namespace SuperMario
             if (RESTART_FLAG)
                 Exit();
             foreach (var uielement in UISafeElements)
+                if (!uielement.Disabled)
                 uielement.Update(gameTime);
             base.Update(gameTime);
+            System.Diagnostics.Debug.WriteLine("Update took: " + (DateTime.Now.TimeOfDay - start).TotalMilliseconds + "ms");
         }
 
         /// <summary>
@@ -178,17 +181,20 @@ namespace SuperMario
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(CurrentScreen?.Background ?? Color.Black);
+            var start = DateTime.Now.TimeOfDay;
             spriteBatch.Begin(CurrentScreen?.SortMode ?? SpriteSortMode.FrontToBack, null, SamplerState.LinearWrap, null, null, null, GameCamera.Transform(GraphicsDevice)); //Repeating texture objects drawn here
             if (!(CurrentScreen is UI.UIComponent))
                 CurrentScreen?.Draw(spriteBatch);            
             spriteBatch.End();
             spriteBatch.Begin();
             foreach (var element in UISafeElements)
-                element.Draw(spriteBatch);
+                if (!element.Disabled)
+                    element.Draw(spriteBatch);
             UI.Tooltip.sDraw(spriteBatch);
             spriteBatch.End();
             base.Draw(gameTime);
             Stats.frame++;
+            System.Diagnostics.Debug.WriteLine("Draw took: " + (DateTime.Now.TimeOfDay - start).TotalMilliseconds + "ms");
         }        
     }
 }

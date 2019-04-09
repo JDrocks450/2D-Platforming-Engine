@@ -19,6 +19,7 @@ namespace SuperMario.Screens
         public int Y { get => 0; set { } }
         public int Width { get; set; } = Core.SCRWIDTH;
         public int Height { get; set; } = Core.SCRHEIGHT;
+        public bool Disabled { get; set; } = false;
 
         Core ci;
 

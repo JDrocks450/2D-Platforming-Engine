@@ -71,7 +71,7 @@
     <GenerateManifests>true</GenerateManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <SignManifests>true</SignManifests>
+    <SignManifests>false</SignManifests>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Camera.cs" />
@@ -100,6 +100,7 @@
       <DependentUpon>Resource1.resx</DependentUpon>
     </Compile>
     <Compile Include="Screens\Main Menu.cs" />
+    <Compile Include="UI\ItemAssigner.cs" />
     <Compile Include="UI\ObjectSpawner.cs" />
     <Compile Include="Screens\Level Creator.cs" />
     <Compile Include="Levels\LevelData.cs" />
