@@ -32,6 +32,10 @@ namespace SuperMario.UI
         {
             get => h; set => h = value;
         }
+        public bool Disabled
+        {
+            get; set;
+        }
 
         public static bool Showing
         {

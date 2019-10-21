@@ -54,7 +54,7 @@ namespace SuperMario
 
         public static Player ControlledPlayer
         {
-            get => (Player)GameObjects.Find(x => x is Player) ?? null;
+            get => GameObjects.Find(x => x is Player) as Player;
         }
 
         public static int Lives = 5;
@@ -103,7 +103,7 @@ namespace SuperMario
             BaseTexture = new Texture2D(GraphicsDevice, 1, 1);
             BaseTexture.SetData(new Color[] { Color.White });
             GameCamera = new Camera();
-            UIElements.Add(new Main_Menu(this));
+            UIElements.Add(new Main_Menu());
             base.Initialize();
         }
 
@@ -121,18 +121,20 @@ namespace SuperMario
             UI.Tooltip.Load(Content, SCRWIDTH, SCRHEIGHT, Core.BaseTexture);                        
         }
 
-        public void PostMainMenu()
+        public static void PostMainMenu()
         {
             //Init.
             UISafeElements = new List<UI.UIComponent>();
             UIElements = new List<UI.UIComponent>();
             SafeObjects = new GameObject[0];
+            Coins = 0;
+            Lives = 5;
             GameObjects.Clear();
             //Load                        
             levelData = LevelLoader.LevelData.LoadFile();
             if (CurrentScreen is LevelCreator)
                 ((LevelCreator)CurrentScreen).LoadLevel(levelData);
-            CurrentScreen.Load(Content);
+            CurrentScreen.Load(Manager);
         }
 
         /// <summary>
@@ -152,23 +154,31 @@ namespace SuperMario
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
+            var start = DateTime.Now.TimeOfDay;
             MousePosition = GameCamera.Screen.Location + Mouse.GetState().Position;
             UISafeElements = UIElements.ToList();
             CurrentScreen?.Update(gameTime);
             IsMouseVisible = MouseVisible;
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
             {
-                if (!UISafeElements.OfType<Main_Menu>().Any())
-                {
-                    UIElements.Add(new Main_Menu(this));
-                    ((Screen)UIElements.Last()).Load(Manager);
-                }
+                ShowMainMenu();
             }
             if (RESTART_FLAG)
                 Exit();
             foreach (var uielement in UISafeElements)
+                if (!uielement.Disabled)
                 uielement.Update(gameTime);
             base.Update(gameTime);
+            System.Diagnostics.Debug.WriteLine("Update took: " + (DateTime.Now.TimeOfDay - start).TotalMilliseconds + "ms");
+        }
+
+        public static void ShowMainMenu()
+        {
+            if (!UISafeElements.OfType<Main_Menu>().Any())
+            {
+                UIElements.Add(new Main_Menu());
+                ((Screen)UIElements.Last()).Load(Manager);
+            }
         }
 
         /// <summary>
@@ -178,17 +188,20 @@ namespace SuperMario
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(CurrentScreen?.Background ?? Color.Black);
+            var start = DateTime.Now.TimeOfDay;
             spriteBatch.Begin(CurrentScreen?.SortMode ?? SpriteSortMode.FrontToBack, null, SamplerState.LinearWrap, null, null, null, GameCamera.Transform(GraphicsDevice)); //Repeating texture objects drawn here
             if (!(CurrentScreen is UI.UIComponent))
                 CurrentScreen?.Draw(spriteBatch);            
             spriteBatch.End();
             spriteBatch.Begin();
             foreach (var element in UISafeElements)
-                element.Draw(spriteBatch);
+                if (!element.Disabled)
+                    element.Draw(spriteBatch);
             UI.Tooltip.sDraw(spriteBatch);
             spriteBatch.End();
             base.Draw(gameTime);
             Stats.frame++;
+            System.Diagnostics.Debug.WriteLine("Draw took: " + (DateTime.Now.TimeOfDay - start).TotalMilliseconds + "ms");
         }        
     }
 }

@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SuperMario
+namespace SuperMario.UI
 {
     public class ObjectSpawner : UIComponent
     {
@@ -35,30 +35,84 @@ namespace SuperMario
         {
             get; set;
         }
+        public bool Disabled
+        {
+            get; set;
+        }
 
+        public bool Stretch, DropDown, AutoSize, Populated, ButtonsDisabled;
+
+        /// <summary>
+        /// Creates a ObjectSpawner for the Creator mode at the top of the screen
+        /// </summary>
         public ObjectSpawner()
         {
             X = 0;
             Height = HEIGHT;
             Y = -Height;
-            Width = Core.GameCamera.Screen.Width;            
+            Width = Core.GameCamera.Screen.Width;
+            Stretch = true;
+            DropDown = true;
+        }
+
+        /// <summary>
+        /// Creates the ObjectSpawner for use elsewhere
+        /// </summary>
+        /// <param name="viewBox"></param>
+        public ObjectSpawner(Rectangle viewBox, bool autosize)
+        {
+            X = viewBox.X;
+            Y = viewBox.Y;
+            Width = viewBox.Width;
+            Height = viewBox.Height;
+            Stretch = false;
+            AutoSize = autosize;
         }
 
         Dictionary<byte, Tuple<Texture2D, int, int>> items = new Dictionary<byte, Tuple<Texture2D, int, int>>();
 
         void Populate()
         {
+            PopulateWith(typeof(LevelLoader.LevelData.OBJ_TABLE), 0);
+        }
+
+        /// <summary>
+        /// Populates the ObjectSpawner with items
+        /// </summary>
+        /// <param name="source">Sets the source mode: 0 - OBJ_TABLE, 1 - ITEM_TABLE</param>
+        /// <param name="exclude"></param>
+        public void PopulateWith(Type Table, params byte[] exclude)
+        {
             if (Populated)
                 return;
+            int source = 0;
+            if (Table == typeof(LevelLoader.LevelData.OBJ_TABLE))
+                source = 0;
+            else if (Table == typeof(Items.Item.ITEM_TABLE))
+                source = 1;
             int i = 0;
-            foreach(byte obj in Enum.GetValues(typeof(LevelLoader.LevelData.OBJ_TABLE)))
+            foreach (byte obj in Enum.GetValues(Table))
             {
-                if (i == 0)
+                if (exclude.Contains((byte)i))
                 {
                     i++;
                     continue;
                 }
-                var o = LevelLoader.LevelData.GetInstanceByID(obj, new Rectangle());
+                GameObject o = null;
+                switch (source)
+                {
+                    case 0:
+                        o = LevelLoader.LevelData.GetInstanceByID(obj, new Rectangle());
+                        break;
+                    case 1:
+                        o = Items.Item.Parse(obj, out _);
+                        break;
+                }
+                if (o == null)
+                {
+                    i++;
+                    continue;
+                }
                 Texture2D texture = null;
                 Point preferredSize = new Point(ITEM_SIZE);
                 if (o is PrefabObjects.Prefab)
@@ -70,35 +124,53 @@ namespace SuperMario
                 i++;
             }
             Populated = true;
+            if (AutoSize)
+                doAutoSize();
         }
 
-        bool buttonsDisabled = true;
+        void doAutoSize()
+        {
+            var width = MARGIN;
+            var height = 0;
+            foreach(var item in items)
+            {
+                width += item.Value.Item2 + MARGIN;
+                if (item.Value.Item3 > height)
+                    height = item.Value.Item3;
+            }
+            height += MARGIN;
+            Width = width;
+            Height = Height;
+        }        
 
-        bool Populated = false;
         int lastSCRHeight = 0;
         public void Update(GameTime gameTime)
-        {            
-            Width = Core.GameCamera.Screen.Width;
-            if (lastSCRHeight != Core.GameCamera.Screen.Height)
+        {          
+            if(Stretch)
+                Width = Core.GameCamera.Screen.Width;
+            if (DropDown)
             {
-                Populate();
-                lastSCRHeight = Core.GameCamera.Screen.Height;
-            }
-            if (Y < 0)
-            {
-                Y += 5;
-                return;
+                if (lastSCRHeight != Core.GameCamera.Screen.Height)
+                {
+                    Populate();
+                    lastSCRHeight = Core.GameCamera.Screen.Height;
+                }
+                if (Y < 0)
+                {
+                    Y += 5;
+                    return;
+                }
             }
             if (Mouse.GetState().LeftButton == ButtonState.Released)
-                buttonsDisabled = false;
+                ButtonsDisabled = false;
             var msr = new Rectangle(Mouse.GetState().Position, new Point(1));
             int i = 0;
-            if (!buttonsDisabled)
+            if (!ButtonsDisabled && itemBoxes != null)
             foreach (var r in itemBoxes) {
                 if (msr.Intersects(r) && Mouse.GetState().LeftButton == ButtonState.Pressed)
                 {
                     OnObjectSpawnRequested?.Invoke(items.Skip(i).Take(1).First().Key);
-                    buttonsDisabled = true;
+                    ButtonsDisabled = true;
                     break;
                 }
                 i++;
@@ -110,14 +182,14 @@ namespace SuperMario
         public void Draw(SpriteBatch sb)
         {
             sb.Draw(Core.BaseTexture, new Rectangle(X, Y, Width, Height), Color.DarkGray);
-            int Xlast = 0, Ylast = 0;
+            int Xlast = X, Ylast = 0;
             bool tooltipOpened = false;
             itemBoxes = new Rectangle[items.Count];
             int i = 0;
             foreach(var tuple in items)
             {                
-                int Xloc = X + Xlast + MARGIN;
-                if (Xloc > Width)
+                int Xloc = Xlast + MARGIN;
+                if (Xloc > X + Width)
                 {
                     Ylast += ITEM_SIZE;
                     Xlast = 0;

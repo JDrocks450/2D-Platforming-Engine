@@ -78,6 +78,12 @@ namespace SuperMario.Screens
                 showLevStart = true;
             if (showLevStart)
             {
+                if (Core.Lives < 0)
+                {
+                    Core.CurrentScreen = null;
+                    Core.ShowMainMenu();
+                    return;
+                }
                 ShowLevelStart();
                 if (!GameObjects.OfType<Player>().Any())
                     GameObjects.Add(Player.DebugPlayer());

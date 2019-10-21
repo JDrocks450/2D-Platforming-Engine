@@ -73,7 +73,9 @@ namespace SuperMario
         /// <returns></returns>
         public Rectangle AdvanceFrame(int amount = 1)
         {
-            Column += amount;            
+            Column += amount;
+            if (Column > Columns-1)
+                Column = 0;
             return MoveToFrame(Row, Column);
         }
 

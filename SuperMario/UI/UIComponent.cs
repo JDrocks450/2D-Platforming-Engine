@@ -30,6 +30,11 @@ namespace SuperMario.UI
             get; set;
         }
 
+        bool Disabled
+        {
+            get; set;
+        }
+
         void Update(GameTime gt);
 
         void Draw(SpriteBatch sb);

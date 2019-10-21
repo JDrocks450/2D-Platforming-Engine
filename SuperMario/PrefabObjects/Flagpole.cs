@@ -53,7 +53,7 @@ namespace SuperMario.PrefabObjects
             Height = 100; //For level creator
             Width = 100; //For Level creator
             if (standing == null)
-                standing = Core.SafeObjects.Where(x => x.Hitbox.Intersects(getVisibleHitbox))?.First();
+                standing = Core.SafeObjects.Where(x => !(x is Flagpole) && x.Hitbox.Intersects(getVisibleHitbox))?.First();
             Source.Size = Hitbox.Size;
             if (Core.ControlledPlayer != null)
                 if (Core.ControlledPlayer.Hitbox.Intersects(getVisibleHitbox))

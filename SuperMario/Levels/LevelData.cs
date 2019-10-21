@@ -28,7 +28,8 @@ namespace SuperMario.LevelLoader
             INDESTRUCT,
             FLAG,
             CASTLE,
-            BIGCASTLE
+            BIGCASTLE,
+            COIN
         }
 
         enum DATA_LAYOUT
@@ -204,7 +205,8 @@ namespace SuperMario.LevelLoader
                     obj = new Enemies.Goomba(box.Location, Enemies.Goomba.Direction.Left);
                     break;
                 case OBJ_TABLE.MARIO:
-                    obj = new Player(new Rectangle(box.Location, new Point(50, 100)));
+                    obj = Player.DebugPlayer();
+                    obj.Location = StartPos.Location.ToVector2();
                     break;
                 case OBJ_TABLE.QUES_BLOCK:
                     obj = new PrefabObjects.QuestionBlock(box, PrefabObjects.QuestionBlock.SpawnObjectLogic.Inferred, null);
@@ -223,6 +225,9 @@ namespace SuperMario.LevelLoader
                     break;
                 case OBJ_TABLE.BIGCASTLE:
                     obj = new BigCastle(StartPos.Location);
+                    break;
+                case OBJ_TABLE.COIN:
+                    obj = new Items.Coin(StartPos.Location);
                     break;
             }
             return obj;
