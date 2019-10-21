@@ -61,22 +61,17 @@ namespace SuperMario
                 center.Y -= OFFSET_Y;
                 int dist = DISTANCE_FROM_WORLD_BOTTOM;
                 dist = (CameraIgnoreWorldBottom) ? -9999 : dist;
-                if (Core.WORLD_BOTTOM - center.Y > dist && !HoldingCamera)
-                {
-                    if (!CanMoveBackwards)
+
+                if (!CanMoveBackwards)
                     {
                         if (center.X > Pos.X)
                             Pos.X = center.X;
                     }
                     else
                         Pos.X = center.X;
+                if (Core.WORLD_BOTTOM - center.Y > dist && !HoldingCamera)
                     Pos.Y = center.Y;
-                    Screen = new Rectangle((int)Pos.X - screen.Width, (int)Pos.Y - screen.Height, screen.Width, screen.Height);
-                }
-                else
-                {
-
-                }
+                Screen = new Rectangle((int)Pos.X - screen.Width, (int)Pos.Y - screen.Height, screen.Width, screen.Height);
             }           
             _transform =       // Thanks to o KB o for this solution
               Matrix.CreateTranslation(new Vector3(-Pos.X, -Pos.Y, 0)) *

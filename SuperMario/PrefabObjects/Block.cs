@@ -20,6 +20,8 @@ namespace SuperMario.PrefabObjects
 
         private void Block_OnCollision(Collidable.CollisionType type, Collidable collision, GameObject other)
         {
+            if (type == Collidable.CollisionType.FLOOR)
+                GravityApplied = true;
             if (other == Core.ControlledPlayer && type == Collidable.CollisionType.CEILING) //Player hits bottom  
                 Interact(((Player)other).AllowBreakBrickBlock);
         }
@@ -28,6 +30,11 @@ namespace SuperMario.PrefabObjects
         {
             if (allow)
                 Remove();
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            base.Update(gameTime);
         }
     }
 }

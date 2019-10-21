@@ -54,7 +54,7 @@ namespace SuperMario
 
         public static Player ControlledPlayer
         {
-            get => GameObjects.OfType<Player>()?.First() ?? null;
+            get => (Player)GameObjects.Find(x => x is Player) ?? null;
         }
 
         public static int Lives = 5;

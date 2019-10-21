@@ -50,6 +50,8 @@ namespace SuperMario.Screens
             }
             else
                 GameObjects.AddRange(Core.levelData.LoadedObjects);
+            if (Core.ControlledPlayer == null)
+                GameObjects.Add(new Player(new Rectangle(Point.Zero, Point.Zero)));
         }
 
         public override void Update(GameTime gameTime)
